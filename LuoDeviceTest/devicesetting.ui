@@ -77,16 +77,9 @@
        <widget class="QComboBox" name="m_comboBox_freq"/>
       </item>
       <item row="4" column="2">
-       <widget class="QPushButton" name="m_pushbutton_cmd_output">
+       <widget class="QRadioButton" name="radioButton">
         <property name="text">
-         <string>控制台:开</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="m_pushbutton_paint">
-        <property name="text">
-         <string>绘图:开</string>
+         <string>数据记录</string>
         </property>
        </widget>
       </item>
@@ -94,6 +87,44 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>606</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="draw_switch"/>
+    <addaction name="cmd_switch"/>
+    <addaction name="separator"/>
+    <addaction name="chart_setting"/>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+  <action name="draw_switch">
+   <property name="text">
+    <string>绘图：开</string>
+   </property>
+  </action>
+  <action name="cmd_switch">
+   <property name="text">
+    <string>控制台：开</string>
+   </property>
+   <property name="toolTip">
+    <string>控制台：开</string>
+   </property>
+  </action>
+  <action name="chart_setting">
+   <property name="text">
+    <string>绘图设置</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

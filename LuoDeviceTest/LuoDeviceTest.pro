@@ -10,13 +10,16 @@ CONFIG += console
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    chartsetting.cpp \
     main.cpp \
     devicesetting.cpp
 
 HEADERS += \
+    chartsetting.h \
     devicesetting.h
 
 FORMS += \
+    chartsetting.ui \
     devicesetting.ui
 
 # Default rules for deployment.

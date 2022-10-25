@@ -232,6 +232,10 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
                     if(m_is_save_to_file)
                     {
                         m_qfile_array[i].write((char*)data_24bit);
+//                        QByteArray testArrayRe;
+//                        float testArraySe[10];
+//                        testArrayRe.resize(sizeof(testArraySe));
+//                        memcpy(testArrayRe.data(), &testArraySe, sizeof(testArraySe));
                     }
 
                     if( i == m_disp_ch_index)

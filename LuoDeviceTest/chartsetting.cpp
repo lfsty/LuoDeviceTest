@@ -1,7 +1,7 @@
 #include "chartsetting.h"
 #include "ui_chartsetting.h"
 
-ChartSetting::ChartSetting( QWidget* parent )
+ChartSetting::ChartSetting( QWidget *parent )
     : QDialog( parent )
     , ui( new Ui::ChartSetting )
 {
@@ -9,7 +9,6 @@ ChartSetting::ChartSetting( QWidget* parent )
     setWindowTitle( "绘图设置" );
     ui->m_doubleSpinBox_xrange->setValue( m_chart_data.XRange );
     ui->m_doubleSpinBox_ymax->setValue( m_chart_data.YMax );
-
     ui->m_doubleSpinBox_ymin->setValue( m_chart_data.YMin );
 }
 

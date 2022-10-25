@@ -4,7 +4,7 @@
 
 #include "ui_devicesetting.h"
 
-DeviceSetting::DeviceSetting(QWidget* parent)
+DeviceSetting::DeviceSetting(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::DeviceSetting)
 {
     ui->setupUi(this);
@@ -64,7 +64,7 @@ DeviceSetting::DeviceSetting(QWidget* parent)
     connect(&m_updateTimer, &QTimer::timeout, this, &DeviceSetting::update_paint);
     m_updateTimer.setInterval(50);
 
-    m_chartdata.XRange = 5;
+    m_chartdata.XRange = 1;
     m_chartdata.YMax = 50;
     m_chartdata.YMin = -50;
     initChart();
@@ -139,7 +139,7 @@ void DeviceSetting::printMessage(QString prefix, QByteArray hexMessage)
     }
 }
 
-void DeviceSetting::parseFrame(const QByteArray& frameData)
+void DeviceSetting::parseFrame(const QByteArray &frameData)
 {
     //奇偶校验
     BYTE parity = 0;
@@ -229,20 +229,20 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
                     data_24bit[1] = frameData.at(read_buf_index++);
                     data_24bit[2] = frameData.at(read_buf_index++);
 
+                    float ch_data = _24Bit2Int(data_24bit);
+                    //float d_float = ch_data / 16777216 * 4500 / 24 * 1000;
+                    float d_float = ch_data / 8388608 * 4500 / 24 * 1000;
+
                     if(m_is_save_to_file)
                     {
-                        m_qfile_array[i].write((char*)data_24bit);
-//                        QByteArray testArrayRe;
-//                        float testArraySe[10];
-//                        testArrayRe.resize(sizeof(testArraySe));
-//                        memcpy(testArrayRe.data(), &testArraySe, sizeof(testArraySe));
+                        static QByteArray data_byte_arry;
+                        data_byte_arry.resize(sizeof(d_float));
+                        memcpy(data_byte_arry.data(), &d_float, sizeof(d_float));
+                        m_qfile_array[i].write(data_byte_arry);
                     }
 
                     if( i == m_disp_ch_index)
                     {
-                        float ch_data = _24Bit2Int(data_24bit);
-                        //float d_float = ch_data / 16777216 * 4500 / 24 * 1000;
-                        float d_float = ch_data / 8388608 * 4500 / 24 * 1000;
                         addNewPoint(QPointF(m_now_time, d_float));
                         m_now_time += 1.0 / freq;
                     }
@@ -461,12 +461,15 @@ void DeviceSetting::addNewPoint(QPointF new_point)
 
 void DeviceSetting::update_paint()
 {
-    if (m_point_data.back().x() > m_chartdata.XRange)
+    if(m_is_paint_on)
     {
-        m_axisX->setMin(m_point_data.front().x());
-        m_axisX->setMax(m_point_data.back().x());
+        if (m_point_data.back().x() > m_chartdata.XRange)
+        {
+            m_axisX->setMin(m_point_data.front().x());
+            m_axisX->setMax(m_point_data.back().x());
+        }
+        m_spline_series->replace(m_point_data);
     }
-    m_spline_series->replace(m_point_data);
 }
 
 void DeviceSetting::on_draw_switch_triggered()

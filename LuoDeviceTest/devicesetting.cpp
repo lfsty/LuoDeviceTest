@@ -193,11 +193,9 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
             {
                 //数据
                 // 2字节序列号
-                static UINT16 FrameNumIndex =
-                    frameData.at(read_buf_index) << 8 | frameData.at(read_buf_index + 1);
+                static UINT16 FrameNumIndex = frameData.at(read_buf_index) << 8 | frameData.at(read_buf_index + 1);
                 static UINT64 errornum = 0;
-                UINT16 recvIndex =
-                    frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
+                UINT16 recvIndex = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
 
                 if (FrameNumIndex != recvIndex)
                 {

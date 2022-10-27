@@ -11,12 +11,26 @@ CONFIG += console
 
 SOURCES += \
     chartsetting.cpp \
+    filesave.cpp \
+    filter.cpp \
+    filterbank.cpp \
+    filtercontroller.cpp \
     main.cpp \
     devicesetting.cpp
 
 HEADERS += \
+    ConstData.h \
+    Filter_data/FilterData_1000Hz.h \
+    Filter_data/FilterData_1000Hz_0.h \
+    Filter_data/FilterData_250Hz.h \
+    Filter_data/FilterData_500Hz.h \
+    Filter_data/FilterData_500Hz_0.h \
     chartsetting.h \
-    devicesetting.h
+    devicesetting.h \
+    filesave.h \
+    filter.h \
+    filterbank.h \
+    filtercontroller.h
 
 FORMS += \
     chartsetting.ui \

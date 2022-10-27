@@ -4,7 +4,7 @@
 
 #include "ui_devicesetting.h"
 
-DeviceSetting::DeviceSetting(QWidget *parent)
+DeviceSetting::DeviceSetting(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::DeviceSetting)
 {
     ui->setupUi(this);
@@ -72,6 +72,10 @@ DeviceSetting::DeviceSetting(QWidget *parent)
     m_chartsetting = new ChartSetting(this);
     m_chartsetting->SetCurrentChartData(m_chartdata);
     connect(m_chartsetting, &ChartSetting::SettingChanged, this, &DeviceSetting::chart_data_changed);
+
+    m_filesave.moveToThread(&m_save_data_thread);
+    connect(this, &DeviceSetting::save_data, &m_filesave, &FileSave::SaveData);
+    m_save_data_thread.start();
 }
 
 DeviceSetting::~DeviceSetting()
@@ -95,6 +99,8 @@ DeviceSetting::~DeviceSetting()
         m_axisX->deleteLater();
     }
     m_chartsetting->deleteLater();
+    m_save_data_thread.quit();
+    m_save_data_thread.wait();
 }
 
 void DeviceSetting::setSerial()
@@ -139,7 +145,7 @@ void DeviceSetting::printMessage(QString prefix, QByteArray hexMessage)
     }
 }
 
-void DeviceSetting::parseFrame(const QByteArray &frameData)
+void DeviceSetting::parseFrame(const QByteArray& frameData)
 {
     //奇偶校验
     BYTE parity = 0;
@@ -238,11 +244,16 @@ void DeviceSetting::parseFrame(const QByteArray &frameData)
                         static QByteArray data_byte_arry;
                         data_byte_arry.resize(sizeof(d_float));
                         memcpy(data_byte_arry.data(), &d_float, sizeof(d_float));
-                        m_qfile_array[i].write(data_byte_arry);
+//                        m_filesave.SaveData(i, data_byte_arry);
+                        emit save_data(i, data_byte_arry);
                     }
 
                     if( i == m_disp_ch_index)
                     {
+                        if(m_is_filter)
+                        {
+                            d_float = m_filter_controller[i].DoFilter(d_float);
+                        }
                         addNewPoint(QPointF(m_now_time, d_float));
                         m_now_time += 1.0 / freq;
                     }
@@ -337,12 +348,24 @@ void DeviceSetting::on_m_pushbutton_SettingDevice_clicked()
     {
         case 250:
             setdevice_message.push_back(0x01);
+            for(int i = 0; i < TOTAL_CH_NUM; i++)
+            {
+                m_filter_controller[i].SetSamplingFreq(Freq250);
+            }
             break;
         case 500:
             setdevice_message.push_back(0x02);
+            for(int i = 0; i < TOTAL_CH_NUM; i++)
+            {
+                m_filter_controller[i].SetSamplingFreq(Freq500);
+            }
             break;
         case 1000:
             setdevice_message.push_back(0x04);
+            for(int i = 0; i < TOTAL_CH_NUM; i++)
+            {
+                m_filter_controller[i].SetSamplingFreq(Freq1000);
+            }
             break;
         default:
             QMessageBox::critical(this, "error", "采样率设置错误！");
@@ -528,38 +551,31 @@ void DeviceSetting::on_m_comboBox_ChannelSelect_currentIndexChanged(int index)
     m_disp_ch_index = index;
 }
 
-
-void DeviceSetting::on_radioButton_clicked(bool checked)
+void DeviceSetting::on_m_radioButton_record_clicked(bool checked)
 {
     if(checked)
     {
-        static QDir dir;
-        //选择保存文件
-        static QString root_path = "./LuoData";
-        QString current_file_path = root_path + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh.mm.ss");
-        if(!dir.exists(current_file_path))
-        {
-            dir.mkpath(current_file_path);
-        }
-
-        for(int i = 0; i < TOTAL_CH_NUM; i++)
-        {
-            m_qfile_array[i].setFileName(current_file_path + "/ch_" + QString::number(i + 1));
-            m_qfile_array[i].open(QIODevice :: WriteOnly | QIODevice :: Truncate);
-        }
+        m_filesave.StartRecord();
         m_is_save_to_file = true;
     }
     else
     {
         m_is_save_to_file = false;
-        //保存文件结束
-        for(int i = 0; i < TOTAL_CH_NUM; i++)
-        {
-            if(m_qfile_array[i].isOpen())
-            {
-                m_qfile_array[i].close();
-            }
-        }
+        m_filesave.StopRecord();
+    }
+}
+
+
+void DeviceSetting::on_m_radioButton_filter_clicked(bool checked)
+{
+
+    if(checked)
+    {
+        m_is_filter = true;
+    }
+    else
+    {
+        m_is_filter = false;
     }
 }
 

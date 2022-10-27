@@ -9,6 +9,8 @@
 #include <QtSerialPort/QSerialPortInfo>
 
 #include "chartsetting.h"
+#include "filesave.h"
+#include "filtercontroller.h"
 
 //绘图
 #include <QChart>
@@ -22,14 +24,9 @@
 #include <QDir>
 #include <QFile>
 #include <QDateTime>
+#include <QThread>
 
-#define BYTE quint8
-#define UINT quint32
-#define UINT16 quint16
-#define UINT8 quint8
-#define UINT64 quint64
 
-#define TOTAL_CH_NUM 8
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -68,7 +65,9 @@ private slots:
 
     void on_m_comboBox_ChannelSelect_currentIndexChanged(int index);
 
-    void on_radioButton_clicked(bool checked);
+    void on_m_radioButton_record_clicked(bool checked);
+
+    void on_m_radioButton_filter_clicked(bool checked);
 
 private:
     QSerialPort m_serialPort;
@@ -103,9 +102,15 @@ private:
     ChartSetting*    m_chartsetting = nullptr;
     ChartSettingData m_chartdata;
     int m_disp_ch_index = 0;
+    //滤波
+    bool m_is_filter = false;
+    FilterController m_filter_controller[TOTAL_CH_NUM];
     //数据保存
-    QFile m_qfile_array[TOTAL_CH_NUM];
     bool m_is_save_to_file = false;
+    FileSave m_filesave;
+    QThread m_save_data_thread;
+signals:
+    void save_data(int index, QByteArray data);
 
 private:
     Ui::DeviceSetting* ui;

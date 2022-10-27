@@ -76,6 +76,14 @@ DeviceSetting::DeviceSetting(QWidget* parent)
     m_filesave.moveToThread(&m_save_data_thread);
     connect(this, &DeviceSetting::save_data, &m_filesave, &FileSave::SaveData);
     m_save_data_thread.start();
+
+    m_frame_timer.setInterval(1000);
+    connect(&m_frame_timer, &QTimer::timeout, this, [ = ]()
+    {
+        ui->m_lcdNumber_frame_count->display(m_frame_count);
+        m_frame_count = 0;
+    });
+    m_frame_timer.start();
 }
 
 DeviceSetting::~DeviceSetting()
@@ -101,6 +109,11 @@ DeviceSetting::~DeviceSetting()
     m_chartsetting->deleteLater();
     m_save_data_thread.quit();
     m_save_data_thread.wait();
+
+    if(m_qfile_raw.isOpen())
+    {
+        m_qfile_raw.close();
+    }
 }
 
 void DeviceSetting::setSerial()
@@ -157,6 +170,7 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
     if (parity != BYTE(frameData.at(FrameLen - 1)))
     {
         QMessageBox::critical(this, "error", "奇偶校验错误!" + QString::asprintf("%02X", BYTE(frameData.at(FrameLen - 1))));
+        return;
     }
 
     UINT read_buf_index = 0;
@@ -167,6 +181,7 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
         if (frameData.at(read_buf_index++) != 0x5A)
         {
             QMessageBox::critical(this, "error", "同步帧出错!");
+            return;
         }
     }
 
@@ -259,6 +274,7 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
                     }
                 }
                 //数据
+                m_frame_count++;
                 break;
             }
         case 0x0003:
@@ -433,6 +449,11 @@ void DeviceSetting::recv_data()
 {
     QByteArray data = m_serialPort.readAll();
 
+    if(m_is_raw_data_save)
+    {
+        m_qfile_raw.write(data);
+    }
+
     buffer.append(data);
 
     while (!buffer.isEmpty())
@@ -568,7 +589,6 @@ void DeviceSetting::on_m_radioButton_record_clicked(bool checked)
 
 void DeviceSetting::on_m_radioButton_filter_clicked(bool checked)
 {
-
     if(checked)
     {
         m_is_filter = true;
@@ -576,6 +596,25 @@ void DeviceSetting::on_m_radioButton_filter_clicked(bool checked)
     else
     {
         m_is_filter = false;
+    }
+}
+
+
+void DeviceSetting::on_m_radioButton_raw_record_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_qfile_raw.setFileName("./rawdata.bin");
+        m_qfile_raw.open(QIODevice :: WriteOnly | QIODevice :: Truncate);
+        m_is_raw_data_save = true;
+    }
+    else
+    {
+        m_is_raw_data_save = false;
+        if(m_qfile_raw.isOpen())
+        {
+            m_qfile_raw.close();
+        }
     }
 }
 

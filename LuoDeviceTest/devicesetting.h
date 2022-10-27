@@ -21,12 +21,11 @@
 #include <QValueAxis>
 
 //数据保存
-#include <QDir>
 #include <QFile>
-#include <QDateTime>
 #include <QThread>
 
-
+//帧数统计
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -69,6 +68,8 @@ private slots:
 
     void on_m_radioButton_filter_clicked(bool checked);
 
+    void on_m_radioButton_raw_record_clicked(bool checked);
+
 private:
     QSerialPort m_serialPort;
     QByteArray  m_opendevice_message;
@@ -109,6 +110,11 @@ private:
     bool m_is_save_to_file = false;
     FileSave m_filesave;
     QThread m_save_data_thread;
+    bool m_is_raw_data_save = false;
+    QFile m_qfile_raw;
+    //帧数统计
+    int m_frame_count = 0;
+    QTimer m_frame_timer;
 signals:
     void save_data(int index, QByteArray data);
 

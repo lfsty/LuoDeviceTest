@@ -70,6 +70,8 @@ private slots:
 
     void on_m_radioButton_raw_record_clicked(bool checked);
 
+    void on_m_pushButton_errorNum_clear_clicked();
+
 private:
     QSerialPort m_serialPort;
     QByteArray  m_opendevice_message;
@@ -117,6 +119,14 @@ private:
     QTimer m_frame_timer;
 signals:
     void save_data(int index, QByteArray data);
+
+    void parity_error();
+    void sync_error();
+    void serialNum_error();
+private:
+    quint64 m_parity_error_num = 0;
+    quint64 m_sync_error_num = 0;
+    quint64 m_serialNum_error = 0;
 
 private:
     Ui::DeviceSetting* ui;

@@ -84,6 +84,21 @@ DeviceSetting::DeviceSetting(QWidget* parent)
         m_frame_count = 0;
     });
     m_frame_timer.start();
+
+    connect(this, &DeviceSetting::parity_error, this, [ = ]()
+    {
+        m_parity_error_num++;
+        ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
+    });
+    connect(this, &DeviceSetting::sync_error, this, [ = ]()
+    {
+        m_sync_error_num++;
+        ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
+    });
+    connect(this, &DeviceSetting::serialNum_error, this, [ = ]()
+    {
+        ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
+    });
 }
 
 DeviceSetting::~DeviceSetting()
@@ -169,9 +184,13 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
     }
     if (parity != BYTE(frameData.at(FrameLen - 1)))
     {
-        QMessageBox::critical(this, "error", "奇偶校验错误!" + QString::asprintf("%02X", BYTE(frameData.at(FrameLen - 1))));
+//        QMessageBox::critical(this, "error", "奇偶校验错误!" + QString::asprintf("%02X", BYTE(frameData.at(FrameLen - 1))));
+        qDebug() << "奇偶校验错误！";
+        emit parity_error();
         return;
     }
+    BYTE low = 0x00;
+    BYTE high = 0x00;
 
     UINT read_buf_index = 0;
 
@@ -194,9 +213,15 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
     }
 
     // 2字节命令名称
-    UINT16 CommandName = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
+    high = frameData.at(read_buf_index++);
+    low = frameData.at(read_buf_index++);
+    UINT16 CommandName = high << 8 | low;
+//    UINT16 CommandName = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
     // 2字节命令长度
-    UINT16 CommandLen = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
+    high = frameData.at(read_buf_index++);
+    low = frameData.at(read_buf_index++);
+    UINT16 CommandLen = high << 8 | low;
+//    UINT16 CommandLen = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
     //目前只有00,01,02
     switch (CommandName)
     {
@@ -215,13 +240,24 @@ void DeviceSetting::parseFrame(const QByteArray& frameData)
                 //数据
                 // 2字节序列号
                 static UINT16 FrameNumIndex = frameData.at(read_buf_index) << 8 | frameData.at(read_buf_index + 1);
-                static UINT64 errornum = 0;
-                UINT16 recvIndex = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
+                high = frameData.at(read_buf_index++);
+                low = frameData.at(read_buf_index++);
+                UINT16 recvIndex = high << 8 | low;
+//                UINT16 recvIndex = frameData.at(read_buf_index++) << 8 | frameData.at(read_buf_index++);
 
                 if (FrameNumIndex != recvIndex)
                 {
+                    if(recvIndex > FrameNumIndex)
+                    {
+                        m_serialNum_error += recvIndex - FrameNumIndex;
+                    }
+                    else
+                    {
+                        m_serialNum_error += quint16(0xFFFF) - FrameNumIndex + recvIndex;
+                    }
+                    qDebug() << "原：" << FrameNumIndex << "\t现：" << recvIndex;
                     FrameNumIndex = recvIndex;
-                    errornum++;
+                    emit serialNum_error();
                 }
                 FrameNumIndex++;
 
@@ -458,37 +494,44 @@ void DeviceSetting::recv_data()
 
     while (!buffer.isEmpty())
     {
-        if (buffer.at(0) != 0x5A)
+        // 同步帧
+        while (!buffer.isEmpty())
         {
-            qDebug() << QString("寻找同步帧：" + QString::asprintf("%02X", quint8(buffer.at(0)))).toUtf8().data();
-            buffer.remove(0, 1);
+            if(buffer.size() < 3)
+            {
+                return;
+            }
+            if (buffer.at(0) == 0x5A && buffer.at(1) == 0x5A && buffer.at(2) == 0x5A)
+            {
+                break;
+            }
+            else
+            {
+                qDebug() << QString("寻找同步帧：" + QString::asprintf("%02X", quint8(buffer.at(0)))).toUtf8().data();
+                buffer.remove(0, 1);
+                emit sync_error();
+            }
         }
-        else
-        {
-            break;
-        }
-    }
 
-    if (buffer.size() < 10)
-    {
-        return;
-    }
-    else
-    {
-        quint16 commamd_len = buffer.at(8) << 8 | buffer.at(9);
-        quint64 frame_len = 10 + commamd_len + 1;
-        if (buffer.size() < frame_len)
+        //数据解析
+        if (buffer.size() < 10)
         {
             return;
         }
         else
         {
-            while (buffer.size() >= frame_len)
+            quint16 commamd_len = buffer.at(8) << 8 | buffer.at(9);
+            quint64 frame_len = 10 + commamd_len + 1;
+            if (buffer.size() < frame_len)
+            {
+                return;
+            }
+            else
             {
                 //处理一帧数据
                 QByteArray frameData = buffer.mid(0, frame_len);
-                parseFrame(frameData);
                 printMessage("收到数据", frameData);
+                parseFrame(frameData);
                 buffer.remove(0, frame_len);
             }
         }
@@ -616,5 +659,16 @@ void DeviceSetting::on_m_radioButton_raw_record_clicked(bool checked)
             m_qfile_raw.close();
         }
     }
+}
+
+
+void DeviceSetting::on_m_pushButton_errorNum_clear_clicked()
+{
+    m_parity_error_num = 0;
+    ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
+    m_sync_error_num = 0;
+    ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
+    m_serialNum_error = 0;
+    ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
 }
 

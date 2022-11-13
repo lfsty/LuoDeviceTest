@@ -11,12 +11,7 @@ DeviceSetting::DeviceSetting(QWidget* parent)
     connect(&m_serialPort, &QSerialPort::readyRead, this,
             &DeviceSetting::recv_data);
 
-    QStringList SerialPortInfo;
-    foreach (QSerialPortInfo info, QSerialPortInfo::availablePorts())
-    {
-        SerialPortInfo << info.portName();
-    }
-    ui->m_comboBox_ComNameSelect->addItems(SerialPortInfo);
+    init_com();
 
     ui->m_comboBox_BautSelect->addItem("460800");
 
@@ -131,10 +126,130 @@ DeviceSetting::~DeviceSetting()
     }
 }
 
+void DeviceSetting::init_com()
+{
+#ifdef Q_OS_WIN
+    QList<ComInfo> com_info_list;
+    HDEVINFO hDevInfo = INVALID_HANDLE_VALUE;
+    SP_DEVINFO_DATA spDevInfoData = { 0 };
+
+    //获取存在的串口信息
+    hDevInfo = SetupDiGetClassDevs(&GUID_DEVINTERFACE_COMPORT, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+    if (hDevInfo == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+    spDevInfoData.cbSize = sizeof(spDevInfoData);
+    for (int i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &spDevInfoData); i++)
+    {
+        char desc[MAX_PATH] = { 0 };
+        QString tmp_desc;
+        char containerID[16] = { 0 };
+        ComInfo tmp_com_info;
+
+        DEVPROPTYPE PropertyType = 0;
+
+        //获取串口描述
+        if (SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_FRIENDLYNAME, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
+        {
+            tmp_desc = desc;
+        }
+        else if(SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_DEVICEDESC, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
+        {
+            tmp_desc = desc;
+        }
+        else
+        {
+            continue;
+        }
+
+        //container_id
+        if (SetupDiGetDevicePropertyW(hDevInfo, &spDevInfoData, &DEVPKEY_Device_ContainerId, &PropertyType, (PBYTE)containerID, 16, NULL, NULL))
+        {
+            memcpy(tmp_com_info.m_container_id, containerID, 16);
+        }
+        else
+        {
+            continue;
+        }
+        int tmp_COM_index = tmp_desc.indexOf("COM");
+
+        tmp_com_info.m_com_desc = tmp_desc;
+        tmp_com_info.m_com_name = tmp_desc.mid(tmp_COM_index, 4);
+        tmp_com_info.index = tmp_com_info.m_com_name.mid(3, 1).toInt();
+        com_info_list.push_back(tmp_com_info);
+    }
+    SetupDiDestroyDeviceInfoList(hDevInfo);
+    hDevInfo = INVALID_HANDLE_VALUE;
+    //获取串口额外名称
+    hDevInfo = SetupDiGetClassDevs(NULL, NULL, NULL, DIGCF_ALLCLASSES);
+    if (hDevInfo == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+    for (int i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &spDevInfoData); i++)
+    {
+        char desc[MAX_PATH] = { 0 };
+        char containerID[17] = { 0 };
+        char classname[1024] = { 0 };
+        DEVPROPTYPE PropertyType = 0;
+
+        //获取containerID
+        if (!SetupDiGetDevicePropertyW(hDevInfo, &spDevInfoData, &DEVPKEY_Device_ContainerId, &PropertyType, (PBYTE)containerID, 17, NULL, NULL))
+        {
+            continue;
+        }
+        //获取classname
+        if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_CLASS, NULL, (PBYTE)classname, 1024, NULL))
+        {
+            continue;
+        }
+
+        for(int i = 0; i < com_info_list.size(); i++)
+        {
+            if(strlen(containerID) != 0
+                    && strcmp(classname, "Bluetooth") == 0
+                    && strcmp(com_info_list.at(i).m_container_id, containerID) == 0)
+            {
+                //获取串口描述
+                if (SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_FRIENDLYNAME, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
+                {
+                    com_info_list[i].m_com_desc = QString(desc).simplified();
+                    break;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+    }
+    SetupDiDestroyDeviceInfoList(hDevInfo);
+
+    std::sort(com_info_list.begin(), com_info_list.end(), [](const ComInfo & com_info1, const ComInfo & com_info2)
+    {
+        return com_info1.index < com_info2.index;
+    });
+
+    for(int i = 0; i < com_info_list.size(); i++)
+    {
+        ui->m_comboBox_ComNameSelect->addItem(com_info_list.at(i).m_com_name + ":" + com_info_list.at(i).m_com_desc);
+//        qDebug() << "index:" << com_info_list.at(i).index << "\tname:" << com_info_list.at(i).m_com_name << "\tdesc:" << com_info_list.at(i).m_com_desc;
+    }
+#else
+    QStringList SerialPortInfo;
+    foreach (QSerialPortInfo info, QSerialPortInfo::availablePorts())
+    {
+        SerialPortInfo << info.portName();
+    }
+    ui->m_comboBox_ComNameSelect->addItems(SerialPortInfo);
+#endif
+}
+
 void DeviceSetting::setSerial()
 {
     qint32 _baut = ui->m_comboBox_BautSelect->currentText().toInt();
-    QString _portName = ui->m_comboBox_ComNameSelect->currentText();
+    QString _portName = ui->m_comboBox_ComNameSelect->currentText().mid(0, 4);
     QSerialPort::DataBits _dataBits = QSerialPort::Data8;
     QSerialPort::FlowControl _flowControl = QSerialPort::NoFlowControl;
     QSerialPort::StopBits _stopBits = QSerialPort::OneStop;

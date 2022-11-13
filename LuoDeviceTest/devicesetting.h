@@ -27,6 +27,23 @@
 //帧数统计
 #include <QTimer>
 
+#ifdef Q_OS_WIN
+//串口信息获取
+#include <initguid.h>
+#include <Windows.h>
+#include <SetupAPI.h>
+#include <Devpkey.h>
+#pragma comment(lib, "setupapi.lib")
+
+struct ComInfo
+{
+    int index = 0;
+    QString m_com_name;
+    QString m_com_desc;
+    char m_container_id[17] = {0};
+};
+#endif
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -41,6 +58,8 @@ class DeviceSetting : public QMainWindow
 public:
     DeviceSetting( QWidget* parent = nullptr );
     ~DeviceSetting();
+private:
+    void init_com();
 private slots:
     void on_m_pushbutton_SettingDevice_clicked();
 

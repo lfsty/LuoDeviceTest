@@ -8,6 +8,7 @@ struct ChartSettingData
     double YMax   = 50;
     double YMin   = -50;
     double XRange = 5;
+    bool AutoAdjust = false;
 };
 
 namespace Ui
@@ -39,6 +40,8 @@ private slots:
     void on_m_doubleSpinBox_ymin_valueChanged( double arg1 );
 
     void on_m_doubleSpinBox_xrange_valueChanged( double arg1 );
+
+    void on_m_radioButton_chart_autoadjust_clicked(bool checked);
 
 private:
     Ui::ChartSetting* ui;

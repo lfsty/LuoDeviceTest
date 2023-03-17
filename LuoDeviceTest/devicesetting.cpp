@@ -142,7 +142,7 @@ void DeviceSetting::init_com()
     spDevInfoData.cbSize = sizeof(spDevInfoData);
     for (int i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &spDevInfoData); i++)
     {
-        char desc[MAX_PATH] = { 0 };
+        wchar_t desc[MAX_PATH] = { 0 };
         QString tmp_desc;
         char containerID[16] = { 0 };
         ComInfo tmp_com_info;
@@ -150,13 +150,13 @@ void DeviceSetting::init_com()
         DEVPROPTYPE PropertyType = 0;
 
         //获取串口描述
-        if (SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_FRIENDLYNAME, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
+        if (SetupDiGetDeviceRegistryProperty(hDevInfo, &spDevInfoData, SPDRP_FRIENDLYNAME, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
         {
-            tmp_desc = desc;
+            tmp_desc = QString::fromWCharArray(desc);
         }
-        else if(SetupDiGetDeviceRegistryPropertyA(hDevInfo, &spDevInfoData, SPDRP_DEVICEDESC, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
+        else if(SetupDiGetDeviceRegistryProperty(hDevInfo, &spDevInfoData, SPDRP_DEVICEDESC, NULL, (PBYTE)desc, MAX_PATH - 1, NULL))
         {
-            tmp_desc = desc;
+            tmp_desc = QString::fromWCharArray(desc);
         }
         else
         {
@@ -670,6 +670,21 @@ void DeviceSetting::update_paint()
             m_axisX->setMin(m_point_data.front().x());
             m_axisX->setMax(m_point_data.back().x());
         }
+
+        if(m_chartdata.AutoAdjust && m_point_data.isEmpty() != true)
+        {
+            float _min = m_point_data[0].y();
+            float _max = m_point_data[0].y();
+            for(auto iter = m_point_data.begin(); iter != m_point_data.end(); iter++)
+            {
+                _min = iter->y() < _min ? iter->y() : _min;
+                _max = iter->y() > _max ? iter->y() : _max;
+            }
+            float _range = (_max - _min) * 0.125;
+            m_axisY->setMin(_min - _range);
+            m_axisY->setMax(_max + _range);
+        }
+
         m_spline_series->replace(m_point_data);
     }
 }
@@ -713,15 +728,24 @@ void DeviceSetting::on_chart_setting_triggered()
 
 void DeviceSetting::chart_data_changed(ChartSettingData chart_data)
 {
-    m_chartdata = chart_data;
+    m_chartdata.XRange = chart_data.XRange;
     m_axisY->setRange(m_chartdata.YMin, m_chartdata.YMax);
-    if(m_point_data.isEmpty())
+
+    if(chart_data.AutoAdjust == false)
     {
-        m_axisX->setMax(m_chartdata.XRange);
+        m_chartdata = chart_data;
+        if(m_point_data.isEmpty())
+        {
+            m_axisX->setMax(m_chartdata.XRange);
+        }
+        else
+        {
+            m_axisX->setMax(m_point_data.front().x() + m_chartdata.XRange);
+        }
     }
     else
     {
-        m_axisX->setMax(m_point_data.front().x() + m_chartdata.XRange);
+        m_chartdata.AutoAdjust = chart_data.AutoAdjust;
     }
 }
 

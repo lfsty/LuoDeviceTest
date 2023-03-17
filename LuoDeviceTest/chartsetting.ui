@@ -28,20 +28,20 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="3">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Y轴下限/uV</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="m_doubleSpinBox_ymin">
        <property name="minimum">
         <double>-10000000.000000000000000</double>
        </property>
        <property name="maximum">
         <double>10000000.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Y轴下限/uV</string>
        </property>
       </widget>
      </item>
@@ -62,15 +62,22 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="0" column="2">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>X轴范围/s</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="0" column="3">
       <widget class="QDoubleSpinBox" name="m_doubleSpinBox_xrange"/>
+     </item>
+     <item row="1" column="3">
+      <widget class="QRadioButton" name="m_radioButton_chart_autoadjust">
+       <property name="text">
+        <string>自动调整</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

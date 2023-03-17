@@ -87,7 +87,7 @@
       <item row="3" column="4">
        <widget class="QRadioButton" name="m_radioButton_raw_record">
         <property name="text">
-         <string>原始数据</string>
+         <string>通信原始数据</string>
         </property>
         <property name="autoExclusive">
          <bool>false</bool>
@@ -158,7 +158,7 @@
      <x>0</x>
      <y>0</y>
      <width>606</width>
-     <height>26</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

@@ -10,6 +10,7 @@ ChartSetting::ChartSetting( QWidget* parent )
     ui->m_doubleSpinBox_xrange->setValue( m_chart_data.XRange );
     ui->m_doubleSpinBox_ymax->setValue( m_chart_data.YMax );
     ui->m_doubleSpinBox_ymin->setValue( m_chart_data.YMin );
+    ui->m_radioButton_chart_autoadjust->setChecked(m_chart_data.AutoAdjust);
 }
 
 ChartSetting::~ChartSetting()
@@ -23,6 +24,7 @@ void ChartSetting::SetCurrentChartData( ChartSettingData current_data )
     ui->m_doubleSpinBox_xrange->setValue( m_chart_data.XRange );
     ui->m_doubleSpinBox_ymax->setValue( m_chart_data.YMax );
     ui->m_doubleSpinBox_ymin->setValue( m_chart_data.YMin );
+    ui->m_radioButton_chart_autoadjust->setChecked(m_chart_data.AutoAdjust);
 }
 
 void ChartSetting::on_buttonBox_accepted()
@@ -49,3 +51,19 @@ void ChartSetting::on_m_doubleSpinBox_xrange_valueChanged( double arg1 )
 {
     m_chart_data.XRange = arg1;
 }
+
+void ChartSetting::on_m_radioButton_chart_autoadjust_clicked(bool checked)
+{
+    if(checked)
+    {
+        ui->m_doubleSpinBox_ymax->setEnabled(false);
+        ui->m_doubleSpinBox_ymin->setEnabled(false);
+    }
+    else
+    {
+        ui->m_doubleSpinBox_ymax->setEnabled(true);
+        ui->m_doubleSpinBox_ymin->setEnabled(true);
+    }
+    m_chart_data.AutoAdjust = checked;
+}
+

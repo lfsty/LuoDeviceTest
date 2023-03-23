@@ -8,7 +8,7 @@
 #include <QFile>
 #include <QByteArray>
 
-#include "ConstData.h"
+#include "../ConstData.h"
 
 class FileSave : public QObject
 {
@@ -22,7 +22,7 @@ public:
     void StartRecord();
     void StopRecord();
 public slots:
-    void SaveData(int index, QByteArray data);
+    void SaveData(QVector<float> data);
 
 private:
     QString m_root_path = "./LuoData";

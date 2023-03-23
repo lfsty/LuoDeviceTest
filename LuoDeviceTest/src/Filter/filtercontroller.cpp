@@ -1,4 +1,7 @@
 #include "filtercontroller.h"
+#include "FilterData/FilterData_1000Hz.h"
+#include "FilterData/FilterData_500Hz.h"
+#include "FilterData/FilterData_250Hz.h"
 
 FilterController::FilterController()
 {

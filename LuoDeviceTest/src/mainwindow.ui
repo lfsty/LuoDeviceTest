@@ -209,6 +209,13 @@
       <item row="1" column="3" colspan="2">
        <widget class="QComboBox" name="m_comboBox_ComNameSelect"/>
       </item>
+      <item row="3" column="4">
+       <widget class="QLabel" name="m_label_total_ch_yRange">
+        <property name="text">
+         <string>显示范围：</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>

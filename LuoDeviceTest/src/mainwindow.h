@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include "Filter/filterwork.h"
 #include "FileSave/filesave.h"
+#include "Filter/filtersetting.h"
 
 #ifdef Q_OS_WIN
 //串口信息获取
@@ -67,10 +68,12 @@ private slots:
 
     void on_m_comboBox_ChannelSelect_currentIndexChanged(int index);
 
+    void on_draw_switch_triggered(bool checked);
+
 private:
     // 绘图设置对话框
     ChartSetting    m_Dlg_chartsetting;
-    ChartSettingData m_chartdata;
+//    ChartSettingData m_chartdata;
 
     // 串口信息刷新
     QTimer m_timer_update_serialport_info;
@@ -86,6 +89,7 @@ private:
     // 滤波
     filterWork m_filter_work;
     QThread m_thread_filter;
+    FilterSetting m_Dlg_filtersetting;
 
     // 文件保存
     FileSave m_file_save;
@@ -98,6 +102,7 @@ signals:
     void sig_Set_deivce(QByteArray);
     void sig_Open_device();
     void sig_Close_device();
+    void sig_Filter_enabled(bool);
 
     void sig_Start_savedata();
     void sig_Stop_savedata();

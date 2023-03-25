@@ -11,31 +11,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     {
         // 图标设置对话框初始化
-        m_Dlg_chartsetting.SetCurrentChartData(m_chartdata);
-        connect(&m_Dlg_chartsetting, &ChartSetting::SettingChanged, this, [ = ](ChartSettingData chart_data)
-        {
-            m_chartdata = chart_data;
-
-//            m_chartdata.XRange = chart_data.XRange;
-//            m_axisY->setRange(m_chartdata.YMin, m_chartdata.YMax);
-
-//            if(chart_data.AutoAdjust == false)
-//            {
-//                m_chartdata = chart_data;
-//                if(m_point_data.isEmpty())
-//                {
-//                    m_axisX->setMax(m_chartdata.XRange);
-//                }
-//                else
-//                {
-//                    m_axisX->setMax(m_point_data.front().x() + m_chartdata.XRange);
-//                }
-//            }
-//            else
-//            {
-//                m_chartdata.AutoAdjust = chart_data.AutoAdjust;
-//            }
-        });
+        m_Dlg_chartsetting.SetCurrentChartData(ui->m_chart->GetChartSettingData());
+        connect(&m_Dlg_chartsetting, &ChartSetting::SettingChanged, ui->m_chart, &ChartWork::ChartSettingChange);
     }
 
     {
@@ -55,32 +32,57 @@ MainWindow::MainWindow(QWidget* parent)
         connect(this, &MainWindow::sig_Set_serialport, &m_communicate, &communicate::SetSerialPortData);
         connect(this, &MainWindow::sig_Open_serialport, &m_communicate, &communicate::OpenSerialPort);
         connect(this, &MainWindow::sig_Close_serialport, &m_communicate, &communicate::CloseSerialPort);
+        //串口打开事件
         connect(&m_communicate, &communicate::sig_serialport_open, this, [ = ]()
         {
             ui->m_comboBox_BautSelect->setEnabled(false);
             ui->m_comboBox_ComNameSelect->setEnabled(false);
             ui->m_pushbutton_OpenCom->setText("关闭串口");
+
+            ui->m_radioButton_record->setEnabled(true);
+            ui->m_comboBox_ChannelSelect->setEnabled(true);
+            ui->m_comboBox_freq->setEnabled(true);
+            ui->m_lcdNumber_frame_count->setEnabled(true);
+            ui->m_radioButton_filter->setEnabled(true);
+            ui->m_pushbutton_SettingDevice->setEnabled(true);
+//            ui->m_pushbutton_OpenDevice->setEnabled(false);
+            ui->m_pushbutton_CloseDevice->setEnabled(true);
         });
+        //串口关闭事件
         connect(&m_communicate, &communicate::sig_serialport_close, this, [ = ]()
         {
             ui->m_comboBox_BautSelect->setEnabled(true);
             ui->m_comboBox_ComNameSelect->setEnabled(true);
             ui->m_pushbutton_OpenCom->setText("打开串口");
+
+            ui->m_radioButton_record->setEnabled(false);
+            ui->m_comboBox_ChannelSelect->setEnabled(false);
+            ui->m_comboBox_freq->setEnabled(false);
+            ui->m_lcdNumber_frame_count->setEnabled(false);
+            ui->m_radioButton_filter->setEnabled(false);
+            ui->m_pushbutton_SettingDevice->setEnabled(false);
+            ui->m_pushbutton_OpenDevice->setEnabled(false);
+            ui->m_pushbutton_CloseDevice->setEnabled(false);
         });
         connect(this, &MainWindow::sig_Set_deivce, &m_communicate, &communicate::SetDeivce);
         connect(&m_communicate, &communicate::sig_device_set, this, [ = ]()
         {
-
+            //配置成功事件
+            ui->m_pushbutton_OpenDevice->setEnabled(true);
         });
         connect(this, &MainWindow::sig_Open_device, &m_communicate, &communicate::OpenDevice);
         connect(&m_communicate, &communicate::sig_device_open, this, [ = ]()
         {
-
+            ui->m_comboBox_freq->setEnabled(false);
+            ui->m_pushbutton_SettingDevice->setEnabled(false);
+            ui->m_pushbutton_OpenDevice->setEnabled(false);
         });
         connect(this, &MainWindow::sig_Close_device, &m_communicate, &communicate::CloseDeivce);
         connect(&m_communicate, &communicate::sig_device_close, this, [ = ]()
         {
-
+            ui->m_comboBox_freq->setEnabled(true);
+            ui->m_pushbutton_SettingDevice->setEnabled(true);
+            ui->m_pushbutton_OpenDevice->setEnabled(true);
         });
         // 校验位错误
         connect(&m_communicate, &communicate::sig_parity_error, this, [ = ]()
@@ -114,6 +116,22 @@ MainWindow::MainWindow(QWidget* parent)
         // 滤波设置
         m_filter_work.moveToThread(&m_thread_filter);
         connect(this, &MainWindow::sig_Set_filter_sampling, &m_filter_work, &filterWork::SetSamplingFreq);
+        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
+
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_FilterEnabled, &m_filter_work, &filterWork::OnFilterEnabled);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_lowpass_enabled, &m_filter_work, &filterWork::OnFilterLowPassEnalbed);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_enabled, &m_filter_work, &filterWork::OnFilterHighPassEnabled);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_notch_enabled, &m_filter_work, &filterWork::OnFilterNotchEnabled);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_impen_enabled, &m_filter_work, &filterWork::OnFilterHighPassImpenEnabled);
+
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_lowpass_changed, &m_filter_work, &filterWork::OnFilterLowPassChanged);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_changed, &m_filter_work, &filterWork::OnFilterHighPassChanged);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_notch_changed, &m_filter_work, &filterWork::OnFilterNotchChanged);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_impen_changed, &m_filter_work, &filterWork::OnFilterHighPassImpenChanged);
+
+        //绘图
+        connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
+        connect(this, &MainWindow::sig_Filter_enabled, &m_filter_work, &filterWork::SetFilterEnabled);
         m_thread_filter.start();
     }
 
@@ -139,7 +157,27 @@ MainWindow::MainWindow(QWidget* parent)
     {
         //绘图设置
         connect(this, &MainWindow::sig_Set_filter_sampling, ui->m_chart, &ChartWork::SetSamplingFrqe);
+        ui->m_label_total_ch_yRange->setVisible(false);
+        connect(ui->m_chart, &ChartWork::sig_Total_Ch_yRange_change, this, [ = ](int yRange)
+        {
+            ui->m_label_total_ch_yRange->setText("显示范围：" + QString::number(yRange));
+        });
     }
+
+    {
+        //初始化按钮设置
+        ui->m_radioButton_record->setEnabled(false);
+        ui->m_comboBox_ChannelSelect->setEnabled(false);
+        ui->m_comboBox_freq->setEnabled(false);
+        ui->m_lcdNumber_frame_count->setEnabled(false);
+        ui->m_radioButton_filter->setEnabled(false);
+        ui->m_pushbutton_SettingDevice->setEnabled(false);
+        ui->m_pushbutton_OpenDevice->setEnabled(false);
+        ui->m_pushbutton_CloseDevice->setEnabled(false);
+    }
+
+
+    m_Dlg_filtersetting.show();
 }
 
 MainWindow::~MainWindow()
@@ -263,19 +301,45 @@ void MainWindow::UpdateSerialPortInfo()
         return com_info1.index < com_info2.index;
     });
 
-    ui->m_comboBox_ComNameSelect->clear();
-
+    QVector<QString> _new_serialport_item;
     for(int i = 0; i < com_info_list.size(); i++)
     {
-        ui->m_comboBox_ComNameSelect->addItem(com_info_list.at(i).m_com_name + ":" + com_info_list.at(i).m_com_desc);
+        _new_serialport_item.push_back(com_info_list.at(i).m_com_name + ":" + com_info_list.at(i).m_com_desc);
     }
 
-    for(int i = 0; i < ui->m_comboBox_ComNameSelect->count(); i++)
+
+    bool _is_serialInfo_changed = false;
+    if(_new_serialport_item.size() != ui->m_comboBox_ComNameSelect->count())
     {
-        if(_current_serialPort_name == ui->m_comboBox_ComNameSelect->itemText(i))
+        _is_serialInfo_changed = true;
+    }
+    else
+    {
+        for(int i = 0; i < _new_serialport_item.size(); i++)
         {
-            ui->m_comboBox_ComNameSelect->setCurrentIndex(i);
-            break;
+            if(_new_serialport_item[i] != ui->m_comboBox_ComNameSelect->itemText(i))
+            {
+                _is_serialInfo_changed = true;
+                break;
+            }
+        }
+    }
+
+
+    if(_is_serialInfo_changed)
+    {
+        ui->m_comboBox_ComNameSelect->clear();
+        for(int i = 0; i < com_info_list.size(); i++)
+        {
+            ui->m_comboBox_ComNameSelect->addItem(com_info_list.at(i).m_com_name + ":" + com_info_list.at(i).m_com_desc);
+        }
+        for(int i = 0; i < ui->m_comboBox_ComNameSelect->count(); i++)
+        {
+            if(_current_serialPort_name == ui->m_comboBox_ComNameSelect->itemText(i))
+            {
+                ui->m_comboBox_ComNameSelect->setCurrentIndex(i);
+                break;
+            }
         }
     }
 
@@ -292,7 +356,7 @@ void MainWindow::UpdateSerialPortInfo()
 
 void MainWindow::on_chart_setting_triggered()
 {
-    m_Dlg_chartsetting.SetCurrentChartData(m_chartdata);
+    m_Dlg_chartsetting.SetCurrentChartData(ui->m_chart->GetChartSettingData());
     m_Dlg_chartsetting.show();
 }
 
@@ -381,22 +445,33 @@ void MainWindow::on_m_pushbutton_CloseDevice_clicked()
 
 void MainWindow::on_m_radioButton_filter_clicked(bool checked)
 {
+
+    emit sig_Filter_enabled(checked);
     if(checked)
     {
-        //开滤波器
-        //disconnect 绘图
-        disconnect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
-        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
-        //绘图
-        connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
+        m_Dlg_filtersetting.show();
     }
     else
     {
-        //不开滤波器
-        disconnect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
-        //connect 绘图
-        connect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
+        m_Dlg_filtersetting.hide();
     }
+//    if(checked)
+//    {
+//        //开滤波器
+//        //disconnect 绘图
+//        disconnect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
+//        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
+//        //绘图
+//        connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
+//    }
+//    else
+//    {
+//        //不开滤波器
+//        disconnect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
+//        disconnect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
+//        //connect 绘图
+//        connect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
+//    }
 }
 
 
@@ -426,7 +501,6 @@ void MainWindow::printMessage(QString prefix, QByteArray hexMessage)
 
 void MainWindow::on_cmd_switch_triggered(bool checked)
 {
-
     ui->cmd_switch->setChecked(!checked);
     if(checked)
     {
@@ -445,6 +519,29 @@ void MainWindow::on_m_comboBox_ChannelSelect_currentIndexChanged(int index)
     if(index < TOTAL_CH_NUM)
     {
         ui->m_chart->SetChIndex(index);
+        m_Dlg_chartsetting.SetAllChannelEnabled(false);
+        ui->m_label_total_ch_yRange->setVisible(false);
+    }
+    else
+    {
+        //显示所有导联
+        ui->m_chart->SetChIndex(index);
+        m_Dlg_chartsetting.SetAllChannelEnabled(true);
+        ui->m_label_total_ch_yRange->setVisible(true);
+    }
+}
+
+
+void MainWindow::on_draw_switch_triggered(bool checked)
+{
+    ui->cmd_switch->setChecked(!checked);
+    if(checked)
+    {
+        ui->m_chart->StartPlot();
+    }
+    else
+    {
+        ui->m_chart->StopPlot();
     }
 }
 

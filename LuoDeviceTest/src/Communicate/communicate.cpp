@@ -213,6 +213,11 @@ void communicate::parseFrame(const QByteArray& frameData)
             {
                 //数据
                 // 2字节序列号
+                if(m_is_device_open == false)
+                {
+                    m_is_device_open = true;
+                    emit sig_device_open();
+                }
                 static UINT16 FrameNumIndex = frameData.at(read_buf_index) << 8 | frameData.at(read_buf_index + 1);
                 high = frameData.at(read_buf_index++);
                 low = frameData.at(read_buf_index++);
@@ -255,6 +260,7 @@ void communicate::parseFrame(const QByteArray& frameData)
                 //停止
                 // bufferVect[read_buf_index++] == 0x03;
                 emit sig_device_close();
+                m_is_device_open = false;
                 break;
             }
         default:

@@ -45,6 +45,8 @@ private:
     //数据接收缓冲区
     QByteArray buffer;
 
+    bool m_is_device_open = false;
+
 signals:
     void sig_serialport_open();
     void sig_serialport_close();

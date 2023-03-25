@@ -47,11 +47,14 @@ void FileSave::StopRecord()
 
 void FileSave::SaveData(QVector<float> data)
 {
+    static QByteArray _write_data("", sizeof(float));
+
     for(int i = 0; i < data.size(); i++)
     {
         if(m_qfile[i].isOpen())
         {
-            m_qfile[i].write((char*)(&data[i]));
+            memcpy(_write_data.data(), &data[i], sizeof(float));
+            m_qfile[i].write(_write_data);
         }
     }
 

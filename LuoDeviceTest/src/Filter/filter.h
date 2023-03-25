@@ -5,6 +5,9 @@
 #include <iostream>
 #include <stdexcept>
 
+#define FILTER_NEW
+
+#ifdef FILTER_NEW
 template <typename T>
 class _Queue
 {
@@ -34,13 +37,27 @@ private:
     int m_front = 0;
     int m_length = 0;
 };
-double mat_cal(const _Queue<double>& A, const _Queue<double>& B);
+static double mat_cal(const _Queue<double>& A, const _Queue<double>& B)
+{
+    {
+        if (A.size() != B.size())
+        {
+            throw std::runtime_error("size error");
+        }
+        double data = 0;
+        for (int i = 0; i < A.size(); i++)
+        {
+            data += A[i] * B[i];
+        }
+        return data;
+    }
+}
 template<typename value_type>
 class Filter
 {
 public:
-    Filter(int Order, const std::vector<double>& B, const std::vector<double>& A);
-    Filter(int Order, const double* B, const double* A);
+    Filter(int Order, const std::vector<double>& NUM, const std::vector<double>& DEN);
+    Filter(int Order, const double* NUM, const double* DEN);
 private:
     struct _parameter
     {
@@ -188,24 +205,24 @@ inline void _Queue<T>::SetQueueSize(int size)
 }
 
 template<typename value_type>
-inline Filter<value_type>::Filter(int Order, const std::vector<double>& B, const std::vector<double>& A)
+inline Filter<value_type>::Filter(int Order, const std::vector<double>& NUM, const std::vector<double>& DEN)
 {
     m_filter.A.SetQueueSize(Order);
-    m_filter.A.init(std::vector<double>(A.begin() + 1, A.end()));
+    m_filter.A.init(std::vector<double>(DEN.begin() + 1, DEN.end()));
     m_filter.B.SetQueueSize(Order + 1);
-    m_filter.B.init(B);
+    m_filter.B.init(NUM);
     m_data.A.SetQueueSize(Order + 1);
     m_data.B.SetQueueSize(Order);
     m_order = Order;
 }
 
 template<typename value_type>
-inline Filter<value_type>::Filter(int Order, const double* B, const double* A)
+inline Filter<value_type>::Filter(int Order, const double* NUM, const double* DEN)
 {
     m_filter.A.SetQueueSize(Order);
-    m_filter.A.init(A + 1);
+    m_filter.A.init(DEN + 1);
     m_filter.B.SetQueueSize(Order + 1);
-    m_filter.B.init(B);
+    m_filter.B.init(NUM);
     m_data.A.SetQueueSize(Order + 1);
     m_data.B.SetQueueSize(Order);
     m_order = Order;
@@ -255,5 +272,68 @@ inline std::vector<double> Filter<value_type>::DoFilter(std::vector<value_type> 
 
     return ret_data;
 }
+#else
+template <typename T>
+class Filter
+{
+public:
+    Filter(int N, std::vector<double> B, std::vector<double> A)
+    {
+        if (A.size() != B.size() || N + 1 != A.size())
+        {
+            throw std::runtime_error("滤波器参数出错");
+        }
+        m_filter.A = A;
+        m_filter.B = B;
+        m_data.A.resize(N + 1);
+        m_data.B.resize(N);
+    }
+    Filter(int N, const double* B, const double* A)
+    {
+        for(int i = 0; i < N + 1; i++)
+        {
+            m_filter.A.push_back(A[i]);
+            m_filter.B.push_back(B[i]);
+        }
+        m_data.A.resize(N + 1);
+        m_data.B.resize(N);
+    }
+private:
+    struct _parameter
+    {
+        std::vector<double> A;
+        std::vector<double> B;
+    };
+private:
+    _parameter m_filter;
+    _parameter m_data;
+    double mat_cal(std::vector<double> A, std::vector<double> B)
+    {
+        if (A.size() != B.size())
+        {
+            throw std::runtime_error("矩阵计算大小出错");
+        }
+        double data = 0;
+        for (int i = 0; i < A.size(); i++)
+        {
+            data += A[i] * B[i];
+        }
+        return data;
+    }
+public:
+    double DoFilter(double data)
+    {
+        m_data.A.erase(m_data.A.end() - 1);
+        m_data.A.insert(m_data.A.begin(), data);
+        // 差分方程
+        double filter_data = mat_cal(m_filter.B, m_data.A) - mat_cal(std::vector<double>(m_filter.A.begin() + 1, m_filter.A.end()), m_data.B);
+        m_data.B.erase(m_data.B.end() - 1);
+        m_data.B.insert(m_data.B.begin(), filter_data);
+
+        return filter_data;
+    }
+};
+
+#endif
 
 #endif // FILTER_H

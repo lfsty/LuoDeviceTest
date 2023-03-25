@@ -1,10 +1,11 @@
-QT       += core gui serialport printsupport
-
+QT       += core gui serialport printsupport charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 CONFIG += console
+
+RC_ICONS = src/icon.ico
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -16,8 +17,8 @@ SOURCES += \
     src/Chart/qcustomplot.cpp \
     src/Communicate/communicate.cpp \
     src/FileSave/filesave.cpp \
-    src/Filter/filter.cpp \
     src/Filter/filtercontroller.cpp \
+    src/Filter/filtersetting.cpp \
     src/Filter/filterwork.cpp \
     src/main.cpp \
     src/mainwindow.cpp
@@ -35,6 +36,7 @@ HEADERS += \
     src/Filter/filter.h \
     src/Filter/filterbank.h \
     src/Filter/filtercontroller.h \
+    src/Filter/filtersetting.h \
     src/Filter/filterwork.h \
     src/mainwindow.h
 
@@ -43,6 +45,7 @@ INCLUDEPATH += \
 
 FORMS += \
     src/Chart/chartsetting.ui \
+    src/Filter/filtersetting.ui \
     src/mainwindow.ui
 
 # Default rules for deployment.

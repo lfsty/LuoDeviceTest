@@ -3,6 +3,7 @@
 #include "FilterData/FilterData_500Hz.h"
 #include "FilterData/FilterData_250Hz.h"
 
+#include "DesignButter/filterDesign.hpp"
 filterWork::filterWork(int ChNum, QObject* parent)
     : QObject{parent}
 {
@@ -11,10 +12,7 @@ filterWork::filterWork(int ChNum, QObject* parent)
     m_vect_filterBank.resize(ChNum);
     for(int i = 0; i < ChNum; i++)
     {
-        for(int j = 0; j < 4; j++)
-        {
-            m_vect_filterBank[i].AddFilter(FilterData1000::lowpass::fc15::NL - 1, FilterData1000::lowpass::fc15::NUM, FilterData1000::lowpass::fc15::DEN);
-        }
+        m_vect_filterBank[i].m_filter_bank.resize(4);
     }
 }
 

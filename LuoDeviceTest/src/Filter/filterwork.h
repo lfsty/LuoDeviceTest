@@ -5,6 +5,7 @@
 //#include "filtercontroller.h"
 #include "filterbank.h"
 #include "../ConstData.h"
+
 namespace _FilterLowpass
 {
     enum FilterLowpass

@@ -102,16 +102,6 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="5">
-       <widget class="QRadioButton" name="m_radioButton_filter">
-        <property name="text">
-         <string>滤波</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0" colspan="2">
        <widget class="QLabel" name="m_label_errorNum_parity">
         <property name="text">
@@ -213,6 +203,13 @@
        <widget class="QLabel" name="m_label_total_ch_yRange">
         <property name="text">
          <string>显示范围：</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="5">
+       <widget class="QPushButton" name="m_pushButton_filter">
+        <property name="text">
+         <string>滤波</string>
         </property>
        </widget>
       </item>

@@ -17,7 +17,6 @@ SOURCES += \
     src/Chart/qcustomplot.cpp \
     src/Communicate/communicate.cpp \
     src/FileSave/filesave.cpp \
-    src/Filter/filtercontroller.cpp \
     src/Filter/filtersetting.cpp \
     src/Filter/filterwork.cpp \
     src/main.cpp \
@@ -35,7 +34,6 @@ HEADERS += \
     src/Filter/FilterData/FilterData_500Hz.h \
     src/Filter/filter.h \
     src/Filter/filterbank.h \
-    src/Filter/filtercontroller.h \
     src/Filter/filtersetting.h \
     src/Filter/filterwork.h \
     src/mainwindow.h

@@ -15,6 +15,7 @@ class FilterSetting : public QDialog
 public:
     explicit FilterSetting(QWidget* parent = nullptr);
     ~FilterSetting();
+    void init();
 
 private slots:
 

@@ -58,8 +58,6 @@ private slots:
 
     void on_m_pushbutton_CloseDevice_clicked();
 
-    void on_m_radioButton_filter_clicked(bool checked);
-
     void on_m_radioButton_record_clicked(bool checked);
 
     void printMessage(QString prefix, QByteArray hexMessage);
@@ -69,6 +67,7 @@ private slots:
     void on_m_comboBox_ChannelSelect_currentIndexChanged(int index);
 
     void on_draw_switch_triggered(bool checked);
+    void on_m_pushButton_filter_clicked();
 
 private:
     // 绘图设置对话框

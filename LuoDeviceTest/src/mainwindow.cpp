@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
     on_cmd_switch_triggered(true);
-    on_m_radioButton_filter_clicked(false);
 
     {
         // 图标设置对话框初始化
@@ -43,7 +42,7 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_comboBox_ChannelSelect->setEnabled(true);
             ui->m_comboBox_freq->setEnabled(true);
             ui->m_lcdNumber_frame_count->setEnabled(true);
-            ui->m_radioButton_filter->setEnabled(true);
+            ui->m_pushButton_filter->setEnabled(true);
             ui->m_pushbutton_SettingDevice->setEnabled(true);
 //            ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_CloseDevice->setEnabled(true);
@@ -59,7 +58,7 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_comboBox_ChannelSelect->setEnabled(false);
             ui->m_comboBox_freq->setEnabled(false);
             ui->m_lcdNumber_frame_count->setEnabled(false);
-            ui->m_radioButton_filter->setEnabled(false);
+            ui->m_pushButton_filter->setEnabled(false);
             ui->m_pushbutton_SettingDevice->setEnabled(false);
             ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_CloseDevice->setEnabled(false);
@@ -128,10 +127,10 @@ MainWindow::MainWindow(QWidget* parent)
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_changed, &m_filter_work, &filterWork::OnFilterHighPassChanged);
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_notch_changed, &m_filter_work, &filterWork::OnFilterNotchChanged);
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_impen_changed, &m_filter_work, &filterWork::OnFilterHighPassImpenChanged);
-
+        m_Dlg_filtersetting.init();
         //绘图
         connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
-        connect(this, &MainWindow::sig_Filter_enabled, &m_filter_work, &filterWork::SetFilterEnabled);
+//        connect(this, &MainWindow::sig_Filter_enabled, &m_filter_work, &filterWork::SetFilterEnabled);
         m_thread_filter.start();
     }
 
@@ -170,14 +169,14 @@ MainWindow::MainWindow(QWidget* parent)
         ui->m_comboBox_ChannelSelect->setEnabled(false);
         ui->m_comboBox_freq->setEnabled(false);
         ui->m_lcdNumber_frame_count->setEnabled(false);
-        ui->m_radioButton_filter->setEnabled(false);
+        ui->m_pushButton_filter->setEnabled(false);
         ui->m_pushbutton_SettingDevice->setEnabled(false);
         ui->m_pushbutton_OpenDevice->setEnabled(false);
         ui->m_pushbutton_CloseDevice->setEnabled(false);
     }
 
 
-    m_Dlg_filtersetting.show();
+//    m_Dlg_filtersetting.show();
 }
 
 MainWindow::~MainWindow()
@@ -442,39 +441,6 @@ void MainWindow::on_m_pushbutton_CloseDevice_clicked()
     emit sig_Close_device();
 }
 
-
-void MainWindow::on_m_radioButton_filter_clicked(bool checked)
-{
-
-    emit sig_Filter_enabled(checked);
-    if(checked)
-    {
-        m_Dlg_filtersetting.show();
-    }
-    else
-    {
-        m_Dlg_filtersetting.hide();
-    }
-//    if(checked)
-//    {
-//        //开滤波器
-//        //disconnect 绘图
-//        disconnect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
-//        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
-//        //绘图
-//        connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
-//    }
-//    else
-//    {
-//        //不开滤波器
-//        disconnect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
-//        disconnect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
-//        //connect 绘图
-//        connect(&m_communicate, &communicate::sig_recv_ch_data, ui->m_chart, &ChartWork::AddPoints);
-//    }
-}
-
-
 void MainWindow::on_m_radioButton_record_clicked(bool checked)
 {
     if(checked)
@@ -543,5 +509,11 @@ void MainWindow::on_draw_switch_triggered(bool checked)
     {
         ui->m_chart->StopPlot();
     }
+}
+
+
+void MainWindow::on_m_pushButton_filter_clicked()
+{
+    m_Dlg_filtersetting.show();
 }
 

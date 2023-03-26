@@ -2,9 +2,10 @@
 #define FILTERWORK_H
 
 #include <QObject>
-#include "filtercontroller.h"
+//#include "filtercontroller.h"
+#include "filterbank.h"
 #include "../ConstData.h"
-namespace FilterLowpass
+namespace _FilterLowpass
 {
     enum FilterLowpass
     {
@@ -15,7 +16,7 @@ namespace FilterLowpass
         fc100
     };
 };
-namespace FilterHighpass
+namespace _FilterHighpass
 {
     enum FilterHighpass
     {
@@ -25,7 +26,7 @@ namespace FilterHighpass
         fc3
     };
 }
-namespace FilterNotch
+namespace _FilterNotch
 {
     enum FilterNotch
     {
@@ -33,7 +34,7 @@ namespace FilterNotch
         fc60
     };
 }
-namespace FilterHighpassImpen
+namespace _FilterHighpassImpen
 {
     enum FilterHighpassImpen
     {
@@ -43,7 +44,10 @@ namespace FilterHighpassImpen
         fc200
     };
 }
-
+using namespace _FilterLowpass;
+using namespace _FilterHighpass;
+using namespace _FilterNotch;
+using namespace _FilterHighpassImpen;
 
 class filterWork : public QObject
 {
@@ -52,12 +56,12 @@ public:
     explicit filterWork(int ChNum, QObject* parent = nullptr);
     void SetSamplingFreq(SamplingFreq samp_freq);
     void DoFilter(QVector<float> data);
-    void SetFilterEnabled(bool filter_enable);
 
 private:
+    SamplingFreq m_freq_type = Freq1000;
     int m_ch_num = TOTAL_CH_NUM;
-    QVector<FilterController> m_vect_filtercontroller;
     bool m_is_filter_on = false;
+    QVector<FilterBank<float>> m_vect_filterBank;
 
 public:
     void OnFilterEnabled(bool enable);

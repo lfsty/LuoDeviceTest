@@ -36,8 +36,6 @@ void ChartSetting::SetAllChannelEnabled(bool enable)
         ui->m_doubleSpinBox_ymax->setEnabled(false);
         ui->m_doubleSpinBox_ymin->setEnabled(false);
         ui->m_radioButton_chart_autoadjust->setEnabled(false);
-        m_chart_data.AutoAdjust = false;
-        emit SettingChanged( m_chart_data );
     }
     else
     {

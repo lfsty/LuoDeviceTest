@@ -68,6 +68,7 @@ private slots:
 
     void on_draw_switch_triggered(bool checked);
     void on_m_pushButton_filter_clicked();
+    void closeEvent(QCloseEvent* event);
 
 private:
     // 绘图设置对话框

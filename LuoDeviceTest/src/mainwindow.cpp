@@ -482,16 +482,15 @@ void MainWindow::on_cmd_switch_triggered(bool checked)
 
 void MainWindow::on_m_comboBox_ChannelSelect_currentIndexChanged(int index)
 {
+    ui->m_chart->SetChIndex(index);
     if(index < TOTAL_CH_NUM)
     {
-        ui->m_chart->SetChIndex(index);
         m_Dlg_chartsetting.SetAllChannelEnabled(false);
         ui->m_label_total_ch_yRange->setVisible(false);
     }
     else
     {
         //显示所有导联
-        ui->m_chart->SetChIndex(index);
         m_Dlg_chartsetting.SetAllChannelEnabled(true);
         ui->m_label_total_ch_yRange->setVisible(true);
     }
@@ -515,5 +514,11 @@ void MainWindow::on_draw_switch_triggered(bool checked)
 void MainWindow::on_m_pushButton_filter_clicked()
 {
     m_Dlg_filtersetting.show();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    m_Dlg_filtersetting.close();
+    m_Dlg_chartsetting.close();
 }
 

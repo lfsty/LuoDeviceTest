@@ -25,6 +25,24 @@ void ChartSetting::SetCurrentChartData( ChartSettingData current_data )
     ui->m_doubleSpinBox_ymax->setValue( m_chart_data.YMax );
     ui->m_doubleSpinBox_ymin->setValue( m_chart_data.YMin );
     ui->m_radioButton_chart_autoadjust->setChecked(m_chart_data.AutoAdjust);
+    on_m_radioButton_chart_autoadjust_clicked(m_chart_data.AutoAdjust);
+}
+
+void ChartSetting::SetAllChannelEnabled(bool enable)
+{
+    m_chart_data.AllChannelEnable = enable;
+    if(enable)
+    {
+        ui->m_doubleSpinBox_ymax->setEnabled(false);
+        ui->m_doubleSpinBox_ymin->setEnabled(false);
+        ui->m_radioButton_chart_autoadjust->setEnabled(false);
+    }
+    else
+    {
+        ui->m_doubleSpinBox_ymax->setEnabled(true);
+        ui->m_doubleSpinBox_ymin->setEnabled(true);
+        ui->m_radioButton_chart_autoadjust->setEnabled(true);
+    }
 }
 
 void ChartSetting::on_buttonBox_accepted()
@@ -61,8 +79,11 @@ void ChartSetting::on_m_radioButton_chart_autoadjust_clicked(bool checked)
     }
     else
     {
-        ui->m_doubleSpinBox_ymax->setEnabled(true);
-        ui->m_doubleSpinBox_ymin->setEnabled(true);
+        if(m_chart_data.AllChannelEnable == false)
+        {
+            ui->m_doubleSpinBox_ymax->setEnabled(true);
+            ui->m_doubleSpinBox_ymin->setEnabled(true);
+        }
     }
     m_chart_data.AutoAdjust = checked;
 }

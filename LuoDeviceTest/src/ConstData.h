@@ -6,6 +6,7 @@
 #define UINT16 quint16
 #define UINT8 quint8
 #define UINT64 quint64
+#define real64_T double
 
 #define TOTAL_CH_NUM 8
 

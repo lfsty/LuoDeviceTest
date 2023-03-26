@@ -8,7 +8,8 @@ struct ChartSettingData
     double YMax   = 50;
     double YMin   = -50;
     double XRange = 5;
-    bool AutoAdjust = false;
+    bool AutoAdjust = true;
+    bool AllChannelEnable = false;
 };
 
 namespace Ui
@@ -23,6 +24,7 @@ public:
     explicit ChartSetting( QWidget* parent = nullptr );
     ~ChartSetting();
     void SetCurrentChartData( ChartSettingData current_data );
+    void SetAllChannelEnabled(bool enable);
 
 private:
     ChartSettingData m_chart_data;

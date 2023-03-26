@@ -45,10 +45,17 @@ void FileSave::StopRecord()
     }
 }
 
-void FileSave::SaveData(int index, QByteArray data)
+void FileSave::SaveData(QVector<float> data)
 {
-    if(m_qfile[index].isOpen())
+    static QByteArray _write_data("", sizeof(float));
+
+    for(int i = 0; i < data.size(); i++)
     {
-        m_qfile[index].write(data);
+        if(m_qfile[i].isOpen())
+        {
+            memcpy(_write_data.data(), &data[i], sizeof(float));
+            m_qfile[i].write(_write_data);
+        }
     }
+
 }

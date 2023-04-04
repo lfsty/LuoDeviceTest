@@ -5,8 +5,9 @@
 #include <QSerialPort>
 #include "ConstData.h"
 #include <QTimer>
-
+#include <QVector>
 quint8 checkParity(QByteArray data);
+QVector<BYTE> _Int224Bit(const int& data);
 
 struct SerialPortData
 {
@@ -28,7 +29,7 @@ public:
     void CloseCom();
     void MoveToThead(QThread* thread);
 private:
-
+    int m_freq = 1000;
     QSerialPort m_serialPort;
     void ReadData();
     //数据接收缓冲区

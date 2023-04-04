@@ -1,5 +1,6 @@
 #include "communicate.h"
 #include <QDebug>
+#include <QtMath>
 Communicate::Communicate(QObject* parent)
     : QObject{parent}
 {
@@ -62,6 +63,17 @@ Communicate::Communicate(QObject* parent)
         m_send_data_timer.setTimerType(Qt::TimerType::PreciseTimer);
         connect(&m_send_data_timer, &QTimer::timeout, this, [ = ]()
         {
+            static double _time = 0;
+            _time += 1.0 / m_freq;
+            static double _data;
+            _data = (qSin(2 * M_PI * 20 * _time) + qSin(2 * M_PI * 50 * _time) + qSin(2 * M_PI * 1 * _time)) * 5 + 2;
+            int _tmp = int(_data / 1000 * 24 / 4500 * 8388608);
+            auto _data_list = _Int224Bit(_tmp);
+            for(int i = 0; i < 3; i++)
+            {
+                m_SendData[i + 12] = _data_list[i];
+            }
+
             static quint16 index = 0;
             m_SendData[10] = index >> 8;
             m_SendData[11] = index;
@@ -219,21 +231,20 @@ void Communicate::parseFrame(const QByteArray& frameData)
                 // 1字节采样速率
                 // 1=250;2=500;4=1000
                 UINT8 FreqCommand = frameData.at(read_buf_index++);
-                int _freq = 1000;
                 switch(FreqCommand)
                 {
                     case 1:
-                        _freq = 250;
+                        m_freq = 250;
                         break;
                     case 2:
-                        _freq = 500;
+                        m_freq = 500;
                         break;
                     case 4:
-                        _freq = 1000;
+                        m_freq = 1000;
                         break;
                 }
 
-                m_send_data_timer.setInterval(1000 / _freq);
+                m_send_data_timer.setInterval(1000 / m_freq);
                 m_serialPort.write(frameData);
                 break;
             }
@@ -268,4 +279,15 @@ quint8 checkParity(QByteArray data)
         parity ^= *iter;
     }
     return parity;
+}
+
+QVector<quint8> _Int224Bit(const int& data)
+{
+    QVector<quint8> _24BitInt;
+    _24BitInt.resize(3);
+    _24BitInt[0] = (data & 0x00FF0000) >> 16;
+    _24BitInt[1] = (data & 0x0000FF00) >> 8;
+    _24BitInt[2] = (data & 0x000000FF);
+
+    return _24BitInt;
 }

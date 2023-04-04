@@ -2,9 +2,10 @@
 #define FILTERWORK_H
 
 #include <QObject>
-//#include "filtercontroller.h"
 #include "filterbank.h"
 #include "../ConstData.h"
+#include "DesignButter/filterDesign.h"
+
 namespace _FilterLowpass
 {
     enum FilterLowpass
@@ -70,10 +71,12 @@ public:
     void OnFilterNotchEnabled(bool enable);
     void OnFilterHighPassImpenEnabled(bool enable);
 
-    void OnFilterLowPassChanged(int index);
-    void OnFilterHighPassChanged(int index);
-    void OnFilterNotchChanged(int index);
-    void OnFilterHighPassImpenChanged(int index);
+//    void OnFilterLowPassChanged(int index);
+//    void OnFilterHighPassChanged(int index);
+//    void OnFilterNotchChanged(int index);
+//    void OnFilterHighPassImpenChanged(int index);
+
+    void OnFilterChanged(const int index, const int order, const QVector<double> Fc, FilterType type);
 
 signals:
     void sig_Filter_output(QVector<float>);

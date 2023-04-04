@@ -9,6 +9,7 @@
 typedef double real64_T;
 
 #define TOTAL_CH_NUM 8
+#define SERIALPORT_BAUT 460800
 
 enum SamplingFreq
 {

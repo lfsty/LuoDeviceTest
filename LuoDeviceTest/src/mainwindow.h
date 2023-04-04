@@ -46,13 +46,12 @@ public:
 
 private:
     void UpdateSerialPortInfo();
+    void SetUpDevice();
 
 private slots:
     void on_chart_setting_triggered();
 
     void on_m_pushbutton_OpenCom_clicked();
-
-    void on_m_pushbutton_SettingDevice_clicked();
 
     void on_m_pushbutton_OpenDevice_clicked();
 
@@ -67,8 +66,12 @@ private slots:
     void on_m_comboBox_ChannelSelect_currentIndexChanged(int index);
 
     void on_draw_switch_triggered(bool checked);
+
     void on_m_pushButton_filter_clicked();
+
     void closeEvent(QCloseEvent* event);
+
+    void on_m_pushButton_errorNum_clear_clicked();
 
 private:
     // 绘图设置对话框
@@ -110,5 +113,9 @@ signals:
 
 private:
     Ui::MainWindow* ui;
+    // 报错数据统计
+    quint64 m_parity_error_num = 0;
+    quint64 m_sync_error_num = 0;
+    quint64 m_serialNum_error = 0;
 };
 #endif // MAINWINDOW_H

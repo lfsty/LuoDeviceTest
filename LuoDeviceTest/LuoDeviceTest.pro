@@ -17,6 +17,12 @@ SOURCES += \
     src/Chart/qcustomplot.cpp \
     src/Communicate/communicate.cpp \
     src/FileSave/filesave.cpp \
+    src/Filter/DesignButter/filterDesign.cpp \
+    src/Filter/DesignButter/src/DesignButter.c \
+    src/Filter/DesignButter/src/DesignButter_emxutil.c \
+    src/Filter/DesignButter/src/rtGetInf.c \
+    src/Filter/DesignButter/src/rtGetNaN.c \
+    src/Filter/DesignButter/src/rt_nonfinite.c \
     src/Filter/filtersetting.cpp \
     src/Filter/filterwork.cpp \
     src/main.cpp \
@@ -29,9 +35,15 @@ HEADERS += \
     src/Communicate/communicate.h \
     src/ConstData.h \
     src/FileSave/filesave.h \
-    src/Filter/FilterData/FilterData_1000Hz.h \
-    src/Filter/FilterData/FilterData_250Hz.h \
-    src/Filter/FilterData/FilterData_500Hz.h \
+    src/Filter/DesignButter/filterDesign.h \
+    src/Filter/DesignButter/src/DesignButter.h \
+    src/Filter/DesignButter/src/DesignButter_emxutil.h \
+    src/Filter/DesignButter/src/DesignButter_types.h \
+    src/Filter/DesignButter/src/rtGetInf.h \
+    src/Filter/DesignButter/src/rtGetNaN.h \
+    src/Filter/DesignButter/src/rt_defines.h \
+    src/Filter/DesignButter/src/rt_nonfinite.h \
+    src/Filter/DesignButter/src/rtwtypes.h \
     src/Filter/filter.h \
     src/Filter/filterbank.h \
     src/Filter/filtersetting.h \
@@ -39,7 +51,8 @@ HEADERS += \
     src/mainwindow.h
 
 INCLUDEPATH += \
-    src/Chart/
+    src/Chart/ \
+    D:\Polyspace\R2021a\extern\include
 
 FORMS += \
     src/Chart/chartsetting.ui \

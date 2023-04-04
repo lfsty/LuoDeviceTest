@@ -43,9 +43,9 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_comboBox_freq->setEnabled(true);
             ui->m_lcdNumber_frame_count->setEnabled(true);
             ui->m_pushButton_filter->setEnabled(true);
-            ui->m_pushbutton_SettingDevice->setEnabled(true);
 //            ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_CloseDevice->setEnabled(true);
+            SetUpDevice();
         });
         //串口关闭事件
         connect(&m_communicate, &communicate::sig_serialport_close, this, [ = ]()
@@ -59,11 +59,14 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_comboBox_freq->setEnabled(false);
             ui->m_lcdNumber_frame_count->setEnabled(false);
             ui->m_pushButton_filter->setEnabled(false);
-            ui->m_pushbutton_SettingDevice->setEnabled(false);
             ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_CloseDevice->setEnabled(false);
         });
         connect(this, &MainWindow::sig_Set_deivce, &m_communicate, &communicate::SetDeivce);
+        connect(ui->m_comboBox_freq, &QComboBox::currentTextChanged, this, [ = ](const QString & arg)
+        {
+            SetUpDevice();
+        });
         connect(&m_communicate, &communicate::sig_device_set, this, [ = ]()
         {
             //配置成功事件
@@ -73,36 +76,33 @@ MainWindow::MainWindow(QWidget* parent)
         connect(&m_communicate, &communicate::sig_device_open, this, [ = ]()
         {
             ui->m_comboBox_freq->setEnabled(false);
-            ui->m_pushbutton_SettingDevice->setEnabled(false);
             ui->m_pushbutton_OpenDevice->setEnabled(false);
+            ui->m_pushbutton_OpenCom->setEnabled(false);
         });
         connect(this, &MainWindow::sig_Close_device, &m_communicate, &communicate::CloseDeivce);
         connect(&m_communicate, &communicate::sig_device_close, this, [ = ]()
         {
             ui->m_comboBox_freq->setEnabled(true);
-            ui->m_pushbutton_SettingDevice->setEnabled(true);
             ui->m_pushbutton_OpenDevice->setEnabled(true);
+            ui->m_pushbutton_OpenCom->setEnabled(true);
         });
         // 校验位错误
         connect(&m_communicate, &communicate::sig_parity_error, this, [ = ]()
         {
-            static quint64 _parity_error_num = 0;
-            _parity_error_num++;
-            ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(_parity_error_num));
+            m_parity_error_num++;
+            ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
         });
         // 序列号错误
         connect(&m_communicate, &communicate::sig_serialNum_error, this, [ = ]()
         {
-            static quint64 _sync_error_num = 0;
-            _sync_error_num++;
-            ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(_sync_error_num));
+            m_sync_error_num++;
+            ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
         });
         //同步位错误
         connect(&m_communicate, &communicate::sig_sync_error, this, [ = ]()
         {
-            static quint64 _serialNum_error = 0;
-            _serialNum_error++;
-            ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(_serialNum_error));
+            m_serialNum_error++;
+            ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
         });
         connect(&m_communicate, &communicate::sig_recv_frame, this, [ = ]()
         {
@@ -123,11 +123,10 @@ MainWindow::MainWindow(QWidget* parent)
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_notch_enabled, &m_filter_work, &filterWork::OnFilterNotchEnabled);
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_impen_enabled, &m_filter_work, &filterWork::OnFilterHighPassImpenEnabled);
 
-        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_lowpass_changed, &m_filter_work, &filterWork::OnFilterLowPassChanged);
-        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_changed, &m_filter_work, &filterWork::OnFilterHighPassChanged);
-        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_notch_changed, &m_filter_work, &filterWork::OnFilterNotchChanged);
-        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_highpass_impen_changed, &m_filter_work, &filterWork::OnFilterHighPassImpenChanged);
+        connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_Changed, &m_filter_work, &filterWork::OnFilterChanged);
+
         m_Dlg_filtersetting.init();
+
         //绘图
         connect(&m_filter_work, &filterWork::sig_Filter_output, ui->m_chart, &ChartWork::AddPoints);
 //        connect(this, &MainWindow::sig_Filter_enabled, &m_filter_work, &filterWork::SetFilterEnabled);
@@ -170,7 +169,6 @@ MainWindow::MainWindow(QWidget* parent)
         ui->m_comboBox_freq->setEnabled(false);
         ui->m_lcdNumber_frame_count->setEnabled(false);
         ui->m_pushButton_filter->setEnabled(false);
-        ui->m_pushbutton_SettingDevice->setEnabled(false);
         ui->m_pushbutton_OpenDevice->setEnabled(false);
         ui->m_pushbutton_CloseDevice->setEnabled(false);
     }
@@ -352,6 +350,52 @@ void MainWindow::UpdateSerialPortInfo()
 #endif
 }
 
+void MainWindow::SetUpDevice()
+{
+    QByteArray setdevice_message;
+
+    //配置
+    setdevice_message.push_back(0x5A);
+    setdevice_message.push_back(0x5A);
+    setdevice_message.push_back(0x5A);
+    setdevice_message.push_back(0x01);
+    setdevice_message.push_back(0x02);
+    setdevice_message.push_back(0x03);
+    setdevice_message.push_back(char(0x00));
+    setdevice_message.push_back(0x01);
+    setdevice_message.push_back(char(0x00));
+    setdevice_message.push_back(0x03);
+    setdevice_message.push_back(char(0x00));
+
+    //    quint8 open_ch = 0x01 << ui->m_comboBox_ChannelSelect->currentIndex();
+    //    setdevice_message.push_back(open_ch);
+    setdevice_message.push_back(0xFF);
+
+    quint32 freq = ui->m_comboBox_freq->currentText().toUInt();
+    switch (freq)
+    {
+        case 250:
+            setdevice_message.push_back(0x01);
+            emit sig_Set_filter_sampling(Freq250);
+            break;
+        case 500:
+            setdevice_message.push_back(0x02);
+            emit sig_Set_filter_sampling(Freq500);
+            break;
+        case 1000:
+            setdevice_message.push_back(0x04);
+            emit sig_Set_filter_sampling(Freq1000);
+            break;
+        default:
+            QMessageBox::critical(this, "error", "采样率设置错误！");
+            break;
+    }
+
+    setdevice_message.push_back(checkParity(setdevice_message));
+
+    emit sig_Set_deivce(setdevice_message);
+}
+
 
 void MainWindow::on_chart_setting_triggered()
 {
@@ -381,54 +425,6 @@ void MainWindow::on_m_pushbutton_OpenCom_clicked()
         emit sig_Close_serialport();
     }
 }
-
-
-void MainWindow::on_m_pushbutton_SettingDevice_clicked()
-{
-    QByteArray setdevice_message;
-
-    //配置
-    setdevice_message.push_back(0x5A);
-    setdevice_message.push_back(0x5A);
-    setdevice_message.push_back(0x5A);
-    setdevice_message.push_back(0x01);
-    setdevice_message.push_back(0x02);
-    setdevice_message.push_back(0x03);
-    setdevice_message.push_back(char(0x00));
-    setdevice_message.push_back(0x01);
-    setdevice_message.push_back(char(0x00));
-    setdevice_message.push_back(0x03);
-    setdevice_message.push_back(char(0x00));
-
-//    quint8 open_ch = 0x01 << ui->m_comboBox_ChannelSelect->currentIndex();
-//    setdevice_message.push_back(open_ch);
-    setdevice_message.push_back(0xFF);
-
-    quint32 freq = ui->m_comboBox_freq->currentText().toUInt();
-    switch (freq)
-    {
-        case 250:
-            setdevice_message.push_back(0x01);
-            emit sig_Set_filter_sampling(Freq250);
-            break;
-        case 500:
-            setdevice_message.push_back(0x02);
-            emit sig_Set_filter_sampling(Freq500);
-            break;
-        case 1000:
-            setdevice_message.push_back(0x04);
-            emit sig_Set_filter_sampling(Freq1000);
-            break;
-        default:
-            QMessageBox::critical(this, "error", "采样率设置错误！");
-            break;
-    }
-
-    setdevice_message.push_back(checkParity(setdevice_message));
-
-    emit sig_Set_deivce(setdevice_message);
-}
-
 
 void MainWindow::on_m_pushbutton_OpenDevice_clicked()
 {
@@ -520,5 +516,15 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     m_Dlg_filtersetting.close();
     m_Dlg_chartsetting.close();
+}
+
+void MainWindow::on_m_pushButton_errorNum_clear_clicked()
+{
+    m_parity_error_num = 0;
+    m_sync_error_num = 0;
+    m_serialNum_error = 0;
+    ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
+    ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
+    ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
 }
 

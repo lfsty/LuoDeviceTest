@@ -59,6 +59,7 @@ template<typename value_type>
 class Filter
 {
 public:
+    Filter() {}
     Filter(int Order, const std::vector<double>& NUM, const std::vector<double>& DEN, bool enabled = false);
     Filter(int Order, const double* NUM, const double* DEN, bool enabled = false);
 private:

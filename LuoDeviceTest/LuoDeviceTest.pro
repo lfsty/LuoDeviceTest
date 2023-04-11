@@ -1,4 +1,4 @@
-QT       += core gui serialport printsupport charts
+QT       += core gui serialport printsupport charts network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -15,7 +15,9 @@ SOURCES += \
     src/Chart/chartsetting.cpp \
     src/Chart/chartwork.cpp \
     src/Chart/qcustomplot.cpp \
-    src/Communicate/communicate.cpp \
+    src/Communicate/comcommunicate.cpp \
+    src/Communicate/sigtcpexport.cpp \
+    src/Communicate/tcpservercommunicate.cpp \
     src/FileSave/filesave.cpp \
     src/Filter/DesignButter/filterDesign.cpp \
     src/Filter/DesignButter/src/DesignButter.c \
@@ -32,7 +34,9 @@ HEADERS += \
     src/Chart/chartsetting.h \
     src/Chart/chartwork.h \
     src/Chart/qcustomplot.h \
-    src/Communicate/communicate.h \
+    src/Communicate/comcommunicate.h \
+    src/Communicate/sigtcpexport.h \
+    src/Communicate/tcpservercommunicate.h \
     src/ConstData.h \
     src/FileSave/filesave.h \
     src/Filter/DesignButter/filterDesign.h \
@@ -56,6 +60,7 @@ INCLUDEPATH += \
 
 FORMS += \
     src/Chart/chartsetting.ui \
+    src/Communicate/sigtcpexport.ui \
     src/Filter/filtersetting.ui \
     src/mainwindow.ui
 

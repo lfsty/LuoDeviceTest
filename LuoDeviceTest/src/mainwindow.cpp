@@ -27,12 +27,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     {
         //通信设置
-        m_communicate.MoveToThead(&m_thread_communicate);
-        connect(this, &MainWindow::sig_Set_serialport, &m_communicate, &communicate::SetSerialPortData);
-        connect(this, &MainWindow::sig_Open_serialport, &m_communicate, &communicate::OpenSerialPort);
-        connect(this, &MainWindow::sig_Close_serialport, &m_communicate, &communicate::CloseSerialPort);
+        m_com_communicate.MoveToThead(&m_thread_communicate);
+        connect(this, &MainWindow::sig_Set_serialport, &m_com_communicate, &ComCommunicate::SetSerialPortData);
+        connect(this, &MainWindow::sig_Open_serialport, &m_com_communicate, &ComCommunicate::OpenSerialPort);
+        connect(this, &MainWindow::sig_Close_serialport, &m_com_communicate, &ComCommunicate::CloseSerialPort);
         //串口打开事件
-        connect(&m_communicate, &communicate::sig_serialport_open, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_serialport_open, this, [ = ]()
         {
             ui->m_comboBox_BautSelect->setEnabled(false);
             ui->m_comboBox_ComNameSelect->setEnabled(false);
@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget* parent)
             SetUpDevice();
         });
         //串口关闭事件
-        connect(&m_communicate, &communicate::sig_serialport_close, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_serialport_close, this, [ = ]()
         {
             ui->m_comboBox_BautSelect->setEnabled(true);
             ui->m_comboBox_ComNameSelect->setEnabled(true);
@@ -62,49 +62,49 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_CloseDevice->setEnabled(false);
         });
-        connect(this, &MainWindow::sig_Set_deivce, &m_communicate, &communicate::SetDeivce);
+        connect(this, &MainWindow::sig_Set_deivce, &m_com_communicate, &ComCommunicate::SetDeivce);
         connect(ui->m_comboBox_freq, &QComboBox::currentTextChanged, this, [ = ](const QString & arg)
         {
             SetUpDevice();
         });
-        connect(&m_communicate, &communicate::sig_device_set, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_device_set, this, [ = ]()
         {
             //配置成功事件
             ui->m_pushbutton_OpenDevice->setEnabled(true);
         });
-        connect(this, &MainWindow::sig_Open_device, &m_communicate, &communicate::OpenDevice);
-        connect(&m_communicate, &communicate::sig_device_open, this, [ = ]()
+        connect(this, &MainWindow::sig_Open_device, &m_com_communicate, &ComCommunicate::OpenDevice);
+        connect(&m_com_communicate, &ComCommunicate::sig_device_open, this, [ = ]()
         {
             ui->m_comboBox_freq->setEnabled(false);
             ui->m_pushbutton_OpenDevice->setEnabled(false);
             ui->m_pushbutton_OpenCom->setEnabled(false);
         });
-        connect(this, &MainWindow::sig_Close_device, &m_communicate, &communicate::CloseDeivce);
-        connect(&m_communicate, &communicate::sig_device_close, this, [ = ]()
+        connect(this, &MainWindow::sig_Close_device, &m_com_communicate, &ComCommunicate::CloseDeivce);
+        connect(&m_com_communicate, &ComCommunicate::sig_device_close, this, [ = ]()
         {
             ui->m_comboBox_freq->setEnabled(true);
             ui->m_pushbutton_OpenDevice->setEnabled(true);
             ui->m_pushbutton_OpenCom->setEnabled(true);
         });
         // 校验位错误
-        connect(&m_communicate, &communicate::sig_parity_error, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_parity_error, this, [ = ]()
         {
             m_parity_error_num++;
             ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
         });
         // 序列号错误
-        connect(&m_communicate, &communicate::sig_serialNum_error, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_serialNum_error, this, [ = ]()
         {
             m_sync_error_num++;
             ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
         });
         //同步位错误
-        connect(&m_communicate, &communicate::sig_sync_error, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_sync_error, this, [ = ]()
         {
             m_serialNum_error++;
             ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
         });
-        connect(&m_communicate, &communicate::sig_recv_frame, this, [ = ]()
+        connect(&m_com_communicate, &ComCommunicate::sig_recv_frame, this, [ = ]()
         {
             m_frame_count++;
         });
@@ -115,7 +115,7 @@ MainWindow::MainWindow(QWidget* parent)
         // 滤波设置
         m_filter_work.moveToThread(&m_thread_filter);
         connect(this, &MainWindow::sig_Set_filter_sampling, &m_filter_work, &filterWork::SetSamplingFreq);
-        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
+        connect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_filter_work, &filterWork::DoFilter);
 
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_FilterEnabled, &m_filter_work, &filterWork::OnFilterEnabled);
         connect(&m_Dlg_filtersetting, &FilterSetting::sig_Filter_lowpass_enabled, &m_filter_work, &filterWork::OnFilterLowPassEnalbed);
@@ -173,6 +173,18 @@ MainWindow::MainWindow(QWidget* parent)
         ui->m_pushbutton_CloseDevice->setEnabled(false);
     }
 
+    {
+        m_tcpserver_communcate.MoveToThread(&m_thread_tcpserver_communicate);
+        //tcp 信号输出初始化
+        m_Dlg_tcpexport.setModal(false);
+        //信号数据传递
+        connect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_tcpserver_communcate, &TCPServerCommunicate::ExportData);
+        connect(&m_Dlg_tcpexport, &SigTCPExport::sig_open_TCPServer, &m_tcpserver_communcate, &TCPServerCommunicate::OpenTCPServer);
+        connect(&m_Dlg_tcpexport, &SigTCPExport::sig_close_TCPServer, &m_tcpserver_communcate, &TCPServerCommunicate::CloseTCPServer);
+        connect(&m_tcpserver_communcate, &TCPServerCommunicate::sig_TCPServerStatusChanged, &m_Dlg_tcpexport, &SigTCPExport::TCPServerStatusChanged);
+        m_thread_tcpserver_communicate.start();
+    }
+
 
 //    m_Dlg_filtersetting.show();
 }
@@ -189,6 +201,9 @@ MainWindow::~MainWindow()
 
     m_thread_filesave.quit();
     m_thread_filesave.wait();
+
+    m_thread_tcpserver_communicate.quit();
+    m_thread_tcpserver_communicate.wait();
 }
 
 void MainWindow::UpdateSerialPortInfo()
@@ -442,12 +457,12 @@ void MainWindow::on_m_radioButton_record_clicked(bool checked)
     if(checked)
     {
         emit sig_Start_savedata();
-        connect(&m_communicate, &communicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
+        connect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
     }
     else
     {
         emit sig_Stop_savedata();
-        disconnect(&m_communicate, &communicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
+        disconnect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
     }
 }
 
@@ -467,12 +482,12 @@ void MainWindow::on_cmd_switch_triggered(bool checked)
     if(checked)
     {
         ui->cmd_switch->setText("控制台:开");
-        connect(&m_communicate, &communicate::sig_print_message, this, &MainWindow::printMessage);
+        connect(&m_com_communicate, &ComCommunicate::sig_print_message, this, &MainWindow::printMessage);
     }
     else
     {
         ui->cmd_switch->setText("控制台:关");
-        disconnect(&m_communicate, &communicate::sig_print_message, this, &MainWindow::printMessage);
+        disconnect(&m_com_communicate, &ComCommunicate::sig_print_message, this, &MainWindow::printMessage);
     }
 }
 
@@ -516,6 +531,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     m_Dlg_filtersetting.close();
     m_Dlg_chartsetting.close();
+    m_Dlg_tcpexport.OnQuit();
+    m_Dlg_tcpexport.close();
 }
 
 void MainWindow::on_m_pushButton_errorNum_clear_clicked()
@@ -526,5 +543,11 @@ void MainWindow::on_m_pushButton_errorNum_clear_clicked()
     ui->m_label_errorNum_parity->setText("奇偶校验错误数：" + QString::number(m_parity_error_num));
     ui->m_label_errorNum_sync->setText("同步帧错误数：" + QString::number(m_sync_error_num));
     ui->m_label_errorNum_serial->setText("序列号错误数：" + QString::number(m_serialNum_error));
+}
+
+
+void MainWindow::on_m_pushButton_sig_export_clicked()
+{
+    m_Dlg_tcpexport.show();
 }
 

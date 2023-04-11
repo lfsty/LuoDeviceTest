@@ -1,5 +1,5 @@
-#ifndef COMMUNICATE_H
-#define COMMUNICATE_H
+#ifndef COMCOMMUNICATE_H
+#define COMCOMMUNICATE_H
 
 #include <QObject>
 #include <QThread>
@@ -20,11 +20,11 @@ struct SerialPortData
 
 quint8 checkParity(QByteArray data);
 int _24Bit2Int(const BYTE data[3]);
-class communicate : public QObject
+class ComCommunicate : public QObject
 {
     Q_OBJECT
 public:
-    explicit communicate(QObject* parent = nullptr);
+    explicit ComCommunicate(QObject* parent = nullptr);
 
 public:
     void MoveToThead(QThread* thread);
@@ -63,4 +63,4 @@ signals:
     void sig_print_message(QString, QByteArray);
 };
 
-#endif // COMMUNICATE_H
+#endif // COMCOMMUNICATE_H

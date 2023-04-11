@@ -168,9 +168,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3" colspan="2">
-       <widget class="QComboBox" name="m_comboBox_ComNameSelect"/>
-      </item>
       <item row="3" column="4">
        <widget class="QLabel" name="m_label_total_ch_yRange">
         <property name="text">
@@ -205,6 +202,16 @@
          <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QPushButton" name="m_pushButton_sig_export">
+        <property name="text">
+         <string>信号输出</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="3">
+       <widget class="QComboBox" name="m_comboBox_ComNameSelect"/>
       </item>
      </layout>
     </item>

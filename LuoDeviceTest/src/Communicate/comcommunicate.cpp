@@ -1,7 +1,7 @@
-#include "communicate.h"
+#include "comcommunicate.h"
 #include <QDebug>
 
-communicate::communicate(QObject* parent)
+ComCommunicate::ComCommunicate(QObject* parent)
     : QObject{parent}
 {
     {
@@ -35,16 +35,16 @@ communicate::communicate(QObject* parent)
         m_closedevice_message.push_back(0x5B);
     }
 
-    connect(&m_serialPort, &QSerialPort::readyRead, this, &communicate::OnSerialPortRecvData);
+    connect(&m_serialPort, &QSerialPort::readyRead, this, &ComCommunicate::OnSerialPortRecvData);
 }
 
-void communicate::MoveToThead(QThread* thread)
+void ComCommunicate::MoveToThead(QThread* thread)
 {
     moveToThread(thread);
     m_serialPort.moveToThread(thread);
 }
 
-void communicate::SetSerialPortData(SerialPortData serialport_data)
+void ComCommunicate::SetSerialPortData(SerialPortData serialport_data)
 {
     m_serialPort.setPortName(serialport_data.PortName);
     m_serialPort.setBaudRate(serialport_data.Baut);
@@ -54,7 +54,7 @@ void communicate::SetSerialPortData(SerialPortData serialport_data)
     m_serialPort.setParity(serialport_data.Parity);
 }
 
-void communicate::OpenSerialPort()
+void ComCommunicate::OpenSerialPort()
 {
     m_serialPort.open(QIODevice::ReadWrite);
     if (m_serialPort.isOpen())
@@ -63,7 +63,7 @@ void communicate::OpenSerialPort()
     }
 }
 
-void communicate::CloseSerialPort()
+void ComCommunicate::CloseSerialPort()
 {
     m_serialPort.close();
     if (!m_serialPort.isOpen())
@@ -72,23 +72,23 @@ void communicate::CloseSerialPort()
     }
 }
 
-void communicate::SetDeivce(QByteArray data)
+void ComCommunicate::SetDeivce(QByteArray data)
 {
     m_setdevice_message = data;
     m_serialPort.write(data);
 }
 
-void communicate::OpenDevice()
+void ComCommunicate::OpenDevice()
 {
     m_serialPort.write(m_opendevice_message);
 }
 
-void communicate::CloseDeivce()
+void ComCommunicate::CloseDeivce()
 {
     m_serialPort.write(m_closedevice_message);
 }
 
-void communicate::OnSerialPortRecvData()
+void ComCommunicate::OnSerialPortRecvData()
 {
     QByteArray data = m_serialPort.readAll();
 
@@ -145,7 +145,7 @@ void communicate::OnSerialPortRecvData()
     }
 }
 
-void communicate::parseFrame(const QByteArray& frameData)
+void ComCommunicate::parseFrame(const QByteArray& frameData)
 {
     //奇偶校验
     BYTE parity = 0;

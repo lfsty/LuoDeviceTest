@@ -4,13 +4,15 @@
 #include <QMainWindow>
 #include "Chart/chartsetting.h"
 #include <QTimer>
-#include "Communicate/communicate.h"
+#include "Communicate/comcommunicate.h"
 #include "ConstData.h"
 #include <QMessageBox>
 #include "Filter/filterwork.h"
 #include "FileSave/filesave.h"
 #include "Filter/filtersetting.h"
 
+#include "Communicate/sigtcpexport.h"
+#include "Communicate/tcpservercommunicate.h"
 #ifdef Q_OS_WIN
 //串口信息获取
 #include <initguid.h>
@@ -73,6 +75,8 @@ private slots:
 
     void on_m_pushButton_errorNum_clear_clicked();
 
+    void on_m_pushButton_sig_export_clicked();
+
 private:
     // 绘图设置对话框
     ChartSetting    m_Dlg_chartsetting;
@@ -82,7 +86,7 @@ private:
     QTimer m_timer_update_serialport_info;
 
     // 串口通信
-    communicate m_communicate;
+    ComCommunicate m_com_communicate;
     QThread m_thread_communicate;
 
     // 帧数统计
@@ -97,6 +101,11 @@ private:
     // 文件保存
     FileSave m_file_save;
     QThread m_thread_filesave;
+
+    // tcp信号输出
+    SigTCPExport m_Dlg_tcpexport;
+    QThread m_thread_tcpserver_communicate;
+    TCPServerCommunicate m_tcpserver_communcate;
 
 signals:
     void sig_Set_serialport(SerialPortData);

@@ -34,6 +34,7 @@ void ChartWork::AddPoints(QVector<float> ch_data)
         }
     }
 
+    assert(y.size() == TOTAL_CH_NUM);
     x.append(double(m_current_frame++) / m_freq);
     for(int i = 0; i < TOTAL_CH_NUM; i++)
     {
@@ -97,6 +98,19 @@ void ChartWork::StopPlot()
 void ChartWork::StartPlot()
 {
     m_update_timer.start();
+}
+
+void ChartWork::ClearPlot()
+{
+    x.clear();
+    m_current_frame = 0;
+    for(int i = 0; i < TOTAL_CH_NUM; i++)
+    {
+        y[i].clear();
+        graph(i)->data().data()->clear();
+    }
+    ChartSettingChange(m_chart_setting_data);
+    replot();
 }
 
 void ChartWork::wheelEvent(QWheelEvent* event)

@@ -29,6 +29,8 @@ public:
     void StopPlot();
 
     void StartPlot();
+
+    void ClearPlot();
 public:
     void wheelEvent(QWheelEvent* event);
 private:

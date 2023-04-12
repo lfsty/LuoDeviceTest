@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget* parent)
             ui->m_pushbutton_OpenDevice->setEnabled(true);
             ui->m_pushbutton_OpenCom->setEnabled(true);
         });
+        connect(&m_com_communicate, &ComCommunicate::sig_device_close, ui->m_chart, &ChartWork::ClearPlot);
         // 校验位错误
         connect(&m_com_communicate, &ComCommunicate::sig_parity_error, this, [ = ]()
         {

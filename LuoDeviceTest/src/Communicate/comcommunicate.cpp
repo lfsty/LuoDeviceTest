@@ -236,6 +236,7 @@ void ComCommunicate::parseFrame(const QByteArray& frameData)
                 }
 
                 QVector<float> _frame_data;
+                QByteArray _raw_data;
                 // 3字节有符号整形解析
                 for (int i = 0; i < TOTAL_CH_NUM; i++)
                 {
@@ -243,6 +244,10 @@ void ComCommunicate::parseFrame(const QByteArray& frameData)
                     data_24bit[0] = frameData.at(read_buf_index++);
                     data_24bit[1] = frameData.at(read_buf_index++);
                     data_24bit[2] = frameData.at(read_buf_index++);
+                    //little endian
+                    _raw_data.push_back(data_24bit[2]);
+                    _raw_data.push_back(data_24bit[1]);
+                    _raw_data.push_back(data_24bit[0]);
 
                     float ch_data = _24Bit2Int(data_24bit);
                     //float d_float = ch_data / 16777216 * 4500 / 24 * 1000;
@@ -250,6 +255,7 @@ void ComCommunicate::parseFrame(const QByteArray& frameData)
                     _frame_data.push_back(d_float);
                 }
                 emit sig_recv_frame();
+                emit sig_recv_ch_data_raw(_raw_data);
                 emit sig_recv_ch_data(_frame_data);
                 //数据
 //                m_frame_count++;
@@ -286,7 +292,7 @@ int _24Bit2Int(const quint8 data[])
 {
     int num = (data[0] << 16) | (data[1] << 8) | (data[2]);
     //判断正负
-    if ((data[0] & 0x80) == 0x80)
+    if (num & 0x00800000)
     {
         num |= 0xFF000000;
     }

@@ -116,7 +116,7 @@ signals:
     void sig_Close_device();
     void sig_Filter_enabled(bool);
 
-    void sig_Start_savedata();
+    void sig_Start_savedata(int freq);
     void sig_Stop_savedata();
     void sig_Set_filter_sampling(SamplingFreq);
 

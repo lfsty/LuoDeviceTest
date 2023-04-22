@@ -457,13 +457,13 @@ void MainWindow::on_m_radioButton_record_clicked(bool checked)
 {
     if(checked)
     {
-        emit sig_Start_savedata();
-        connect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
+        emit sig_Start_savedata(ui->m_comboBox_freq->currentText().toUInt());
+        connect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data_raw, &m_file_save, &FileSave::SaveData);
     }
     else
     {
         emit sig_Stop_savedata();
-        disconnect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data, &m_file_save, &FileSave::SaveData);
+        disconnect(&m_com_communicate, &ComCommunicate::sig_recv_ch_data_raw, &m_file_save, &FileSave::SaveData);
     }
 }
 

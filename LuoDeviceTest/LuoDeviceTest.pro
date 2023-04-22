@@ -18,6 +18,7 @@ SOURCES += \
     src/Communicate/comcommunicate.cpp \
     src/Communicate/sigtcpexport.cpp \
     src/Communicate/tcpservercommunicate.cpp \
+    src/FileSave/BDFHeader.cpp \
     src/FileSave/filesave.cpp \
     src/Filter/DesignButter/filterDesign.cpp \
     src/Filter/DesignButter/src/DesignButter.c \
@@ -38,6 +39,7 @@ HEADERS += \
     src/Communicate/sigtcpexport.h \
     src/Communicate/tcpservercommunicate.h \
     src/ConstData.h \
+    src/FileSave/BDFHeader.h \
     src/FileSave/filesave.h \
     src/Filter/DesignButter/filterDesign.h \
     src/Filter/DesignButter/src/DesignButter.h \

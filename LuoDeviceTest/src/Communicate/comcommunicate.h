@@ -54,6 +54,7 @@ signals:
     void sig_device_open();
     void sig_device_close();
     void sig_recv_ch_data(QVector<float>);
+    void sig_recv_ch_data_raw(QByteArray);
     void sig_recv_frame();
 
     void sig_sync_error();
